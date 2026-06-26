@@ -12,6 +12,16 @@ dist
 dist-ssr
 *.local
 
+# Env — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Design sync artifacts
+ds-bundle/
+.ds-sync/
+.ds-entry.tsx
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

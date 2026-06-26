@@ -42,6 +42,7 @@ import TeacherCalificaciones from "./pages/teacher/TeacherCalificaciones";
 import SalonActividades from "./pages/salon/SalonActividades";
 import SalonDetail from "./pages/SalonDetail";
 import CoursePublicDetail from "./pages/CoursePublicDetail";
+import Resources from "./pages/Resources";
 import NotFound from "./pages/NotFound";
 import PaymentSuccess from "./pages/payment/Success";
 import PaymentFailure from "./pages/payment/Failure";
@@ -63,6 +64,7 @@ const App = () => (
             <Route path="/programs" element={<Programs />} />
             <Route path="/programs/:slug" element={<ProgramDetail />} />
             <Route path="/live-classes" element={<LiveClasses />} />
+            <Route path="/resources" element={<Resources />} />
             <Route path="/courses-catalog" element={<Store />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/login" element={<Navigate to="/auth?tab=login" replace />} />
