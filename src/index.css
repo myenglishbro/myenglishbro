@@ -1,0 +1,316 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Acelingua Language Center Design System - Clean & Light Theme */
+
+@layer base {
+  :root {
+    /* Acelingua Brand Palette */
+    --background: 210 20% 98%; /* #F8FAFC */
+    --background-soft: 210 25% 96%;
+    --foreground: 222 47% 11%; /* #0F172A */
+
+    /* Cards & Surfaces */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 222 47% 11%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary - Deep Navy Blue #0F4C81 */
+    --primary: 207 79% 28%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Teal Technology #1FA6A6 */
+    --secondary: 180 68% 39%;
+    --secondary-soft: 180 68% 95%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Accent - Warm Amber #F59E0B */
+    --accent: 38 92% 50%;
+    --accent-sky: 199 89% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%; /* #64748B */
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%; /* #E5E7EB */
+    --input: 220 13% 91%;
+    --ring: 207 79% 28%;
+
+    --radius: 0.75rem;
+
+    /* Custom tokens */
+    --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --card-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --card-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    --transition-fast: all 150ms ease;
+    --transition-normal: all 200ms ease;
+    --transition-slow: all 300ms ease;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(207 79% 28%), hsl(180 68% 39%));
+    --gradient-secondary: linear-gradient(135deg, hsl(180 68% 39%), hsl(180 68% 34%));
+    --gradient-hero: linear-gradient(180deg, hsl(207 79% 28% / 0.05) 0%, transparent 50%);
+  }
+
+  /* Dashboard Light Theme - Unified with Landing */
+  .dashboard {
+    --dashboard-bg: 210 20% 98%;
+    --dashboard-sidebar: 0 0% 100%;
+    --dashboard-card: 0 0% 100%;
+    --dashboard-chip: 207 79% 97%;
+    --dashboard-input: 210 40% 96%;
+    --dashboard-divider: 220 13% 91%;
+    
+    --dashboard-text-primary: 222 47% 11%;
+    --dashboard-text-muted: 215 16% 47%;
+    --dashboard-text-soft: 215 20% 65%;
+    --dashboard-text-subtle: 215 20% 75%;
+    
+    --dashboard-accent-primary: 207 79% 28%;
+    --dashboard-accent-secondary: 180 68% 39%;
+    --dashboard-accent-amber: 38 92% 50%;
+    --dashboard-accent-sky: 199 89% 48%;
+    
+    --dashboard-state-hover: 207 79% 28% / 0.08;
+    --dashboard-state-active: 207 79% 28%;
+    --dashboard-state-focus: 207 79% 28%;
+    --dashboard-state-success: 180 68% 39%;
+    
+    --dashboard-badge-bg: 207 79% 97%;
+    --dashboard-tag-bg: 210 40% 96%;
+  }
+
+  /* Proper dark theme - slate gray based */
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 207 79% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 180 68% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217 33% 25%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217 33% 25%;
+    --input: 217 33% 25%;
+    --ring: 207 79% 45%;
+  }
+
+  /* Force light mode */
+  .light,
+  .light * {
+    color-scheme: light;
+  }
+  
+  .light {
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 207 79% 28%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 180 68% 39%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 207 79% 28%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
+
+@layer components {
+  /* Landing Page Components - Clean & Light */
+  .hero-title {
+    @apply text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight text-foreground;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .hero-subtitle {
+    @apply text-lg md:text-xl font-normal leading-relaxed text-muted-foreground;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold tracking-wider uppercase leading-normal text-primary;
+  }
+
+  .section-title {
+    @apply text-3xl md:text-4xl font-bold leading-snug text-foreground;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .card-premium {
+    @apply bg-card border border-border rounded-2xl p-6 shadow-[var(--card-shadow)] transition-all duration-200 hover:shadow-[var(--card-shadow-lg)] hover:-translate-y-1;
+  }
+
+  .btn-primary {
+    @apply bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5;
+  }
+
+  .btn-secondary {
+    @apply bg-white border-2 border-border hover:border-primary/30 text-foreground px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 hover:bg-primary/5;
+  }
+
+  .landing-card {
+    @apply bg-card border border-border rounded-2xl p-6 shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-lg)] transition-all duration-200;
+  }
+
+  .pill-nav {
+    @apply px-4 py-2 rounded-full text-sm font-medium transition-all duration-200;
+  }
+
+  .pill-nav-active {
+    @apply bg-primary/10 text-primary;
+  }
+
+  /* Section backgrounds */
+  .section-light {
+    @apply bg-background;
+  }
+
+  .section-soft {
+    @apply bg-background-soft;
+  }
+
+  .section-white {
+    @apply bg-card;
+  }
+
+  /* Dashboard Components - Clean & Light Theme */
+  .dashboard-card {
+    @apply bg-white border border-slate-200/80 rounded-2xl shadow-soft transition-all duration-200 hover:shadow-soft-lg;
+  }
+
+  .dashboard-card-flat {
+    @apply bg-white border border-slate-200/80 rounded-xl;
+  }
+
+  .dashboard-nav-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200;
+  }
+
+  .dashboard-nav-item-active {
+    @apply bg-primary/10 text-primary;
+  }
+
+  .dashboard-nav-item-hover {
+    @apply hover:bg-slate-100 hover:text-foreground;
+  }
+
+  .dashboard-stat-card {
+    @apply bg-white border border-slate-200/80 rounded-2xl p-6 shadow-soft;
+  }
+
+  .dashboard-chip {
+    @apply bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-xs font-medium;
+  }
+
+  /* Text gradient utility */
+  .text-gradient-primary {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70;
+  }
+
+  .text-gradient-secondary {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-secondary to-secondary/70;
+  }
+
+  /* Level badge colors */
+  .level-a1 { @apply bg-emerald-100 text-emerald-700 border-emerald-200; }
+  .level-a2 { @apply bg-teal-100 text-teal-700 border-teal-200; }
+  .level-b1 { @apply bg-cyan-100 text-cyan-700 border-cyan-200; }
+  .level-b2 { @apply bg-blue-100 text-blue-700 border-blue-200; }
+  .level-c1 { @apply bg-indigo-100 text-indigo-700 border-indigo-200; }
+  .level-c2 { @apply bg-violet-100 text-violet-700 border-violet-200; }
+}
+
+/* Smooth animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.4s ease-out forwards;
+}
+
+.animate-delay-100 { animation-delay: 100ms; }
+.animate-delay-200 { animation-delay: 200ms; }
+.animate-delay-300 { animation-delay: 300ms; }
+.animate-delay-400 { animation-delay: 400ms; }
+.animate-delay-500 { animation-delay: 500ms; }
+
+/* Thin, dark-themed scrollbar for full-screen overlays (Word Survivor) instead of the
+   default OS scrollbar, which clashes with the dark RPG background. */
+.ws-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+.ws-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.ws-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ws-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+}
+.ws-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.35);
+}

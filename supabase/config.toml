@@ -1,0 +1,7 @@
+project_id = "zjobnxbzdtqsgbfdxzqo"
+
+[functions.admin-delete-user]
+verify_jwt = false
+
+[functions.create-trial-enrollment]
+verify_jwt = false
