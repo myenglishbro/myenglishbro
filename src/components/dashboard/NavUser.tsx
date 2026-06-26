@@ -64,11 +64,17 @@ export const NavUser = () => {
   const initials = userName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
-    <div className="mx-4 mb-4 p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border border-slate-200/80">
+    <div style={{
+      margin: "0 16px 16px",
+      padding: "16px",
+      background: "rgba(76,111,255,0.06)",
+      borderRadius: 18,
+      border: "1px solid rgba(76,111,255,0.12)",
+    }}>
       <div className="flex items-center gap-3">
         <Avatar className="h-11 w-11 ring-2 ring-white shadow-soft">
           <AvatarImage src={avatarUrl} alt={userName} />
-          <AvatarFallback className="bg-gradient-to-br from-primary to-indigo-400 text-white font-bold text-sm">
+          <AvatarFallback style={{ background: "linear-gradient(135deg,#4C6FFF,#3954E0)", color: "#fff", fontWeight: 700, fontSize: 14 }}>
             {initials}
           </AvatarFallback>
         </Avatar>

@@ -11,12 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Eye, EyeOff, GraduationCap } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { loginSchema, registerSchema, forgotPasswordSchema } from "@/lib/validations";
-import logoAce from "@/assets/logo-ace.png";
+
+const ACCENT = "#4C6FFF";
 
 const COUNTRY_CODES = [
   { code: "+51",  flag: "🇵🇪", name: "Perú" },
@@ -46,6 +47,23 @@ const COUNTRY_CODES = [
   { code: "+351", flag: "🇵🇹", name: "Portugal" },
 ];
 
+const MebLogo = ({ size = 32 }: { size?: number }) => (
+  <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+    <span style={{
+      display: "inline-flex", alignItems: "center", justifyContent: "center",
+      width: size, height: size, borderRadius: size * 0.31,
+      background: ACCENT, color: "#fff",
+      fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800,
+      fontSize: size * 0.56, lineHeight: 1, flexShrink: 0,
+    }}>m</span>
+    <span style={{
+      fontFamily: "'Bricolage Grotesque', sans-serif",
+      fontWeight: 700, fontSize: size * 0.56, letterSpacing: "-0.02em", color: "#1E2128",
+    }}>
+      myenglish<span style={{ color: ACCENT }}>bro</span>
+    </span>
+  </Link>
+);
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -68,7 +86,7 @@ const Auth = () => {
     if (tab === "register" || tab === "login") setActiveTab(tab);
   }, [searchParams]);
 
-  const fadeUp = (ms = 0) => ({
+  const fadeUp = (ms = 0): React.CSSProperties => ({
     opacity: show ? 1 : 0,
     transform: show ? "none" : "translateY(14px)",
     transition: `opacity .6s ease ${ms}ms, transform .6s ease ${ms}ms`,
@@ -178,297 +196,347 @@ const Auth = () => {
     setIsLoading(false);
   };
 
-  return (
-    <div className="flex min-h-screen lg:h-screen lg:overflow-hidden">
-      {/* ── Left panel — brand image ── */}
-      <div className="hidden lg:flex lg:w-[48%] xl:w-[52%] relative overflow-hidden bg-[#054A91] shrink-0 flex-col">
-        {/* Background gradients */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_35%,rgba(38,183,199,.26),transparent_30%),radial-gradient(circle_at_76%_28%,rgba(10,114,201,.55),transparent_34%),linear-gradient(135deg,#054A91_0%,#0A26F4_52%,#054A91_100%)]" />
-        </div>
+  const inputStyle: React.CSSProperties = {
+    height: "44px",
+    background: "#fff",
+    border: "1.5px solid rgba(0,0,0,0.12)",
+    borderRadius: "12px",
+    fontFamily: "'Hanken Grotesk', system-ui, sans-serif",
+    fontSize: "14.5px",
+  };
 
-        {/* Logo top-left */}
-        <div className="relative z-20 px-10 pt-9" style={fadeUp(0)}>
-          <Link to="/" className="inline-flex items-center gap-2.5">
-            <img src={logoAce} alt="Acelingua" className="h-9 w-9" />
-            <span className="text-lg font-black text-white tracking-tight" style={{ fontFamily: "'Poppins', sans-serif" }}>
-              Acelingua
-            </span>
+  return (
+    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}>
+
+      {/* Left panel */}
+      <div style={{
+        display: "none",
+        width: "48%",
+        background: `linear-gradient(135deg, ${ACCENT} 0%, #3954E0 100%)`,
+        flexDirection: "column",
+        position: "relative",
+        overflow: "hidden",
+        flexShrink: 0,
+      }} className="lg:flex">
+        {/* Soft circles */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: "radial-gradient(circle at 20% 30%, rgba(255,255,255,0.12) 0%, transparent 40%), radial-gradient(circle at 75% 70%, rgba(255,255,255,0.08) 0%, transparent 35%)",
+        }} />
+
+        {/* Logo */}
+        <div style={{ position: "relative", zIndex: 20, padding: "36px 40px 0", ...fadeUp(0) }}>
+          <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+            <span style={{
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              width: 34, height: 34, borderRadius: 10,
+              background: "rgba(255,255,255,0.20)", color: "#fff",
+              fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 20,
+            }}>m</span>
+            <span style={{
+              fontFamily: "'Bricolage Grotesque', sans-serif",
+              fontWeight: 700, fontSize: 18, letterSpacing: "-0.02em", color: "#fff",
+            }}>myenglishbro</span>
           </Link>
         </div>
 
-        {/* Hero illustration + headline, centered */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-10 min-h-0 pb-10">
-          <div style={fadeUp(80)}>
-            <img
-              src="/logologin.png"
-              alt="Acelingua login"
-              className="w-full max-w-[280px] xl:max-w-[320px] drop-shadow-2xl animate-float"
-            />
-          </div>
-          <div className="mt-8 text-center max-w-sm" style={fadeUp(160)}>
-            <h2 className="text-2xl font-black text-white leading-tight" style={{ fontFamily: "'Poppins', sans-serif" }}>
-              Aprende inglés a tu ritmo
+        {/* Center content */}
+        <div style={{
+          position: "relative", zIndex: 10, flex: 1,
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          padding: "0 48px 48px",
+        }}>
+          {/* Big decorative quote */}
+          <div style={{ ...fadeUp(80), textAlign: "center", maxWidth: 360 }}>
+            <div style={{
+              width: 80, height: 80, borderRadius: 24,
+              background: "rgba(255,255,255,0.15)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 40, marginBottom: 32, marginLeft: "auto", marginRight: "auto",
+            }}>🎓</div>
+            <h2 style={{
+              fontFamily: "'Bricolage Grotesque', sans-serif",
+              fontWeight: 800, fontSize: "clamp(26px,2.8vw,34px)",
+              lineHeight: 1.1, color: "#fff", margin: "0 0 16px",
+              letterSpacing: "-0.02em",
+            }}>
+              Tu inglés al siguiente nivel
             </h2>
-            <p className="mt-2 text-sm text-white/70 leading-relaxed">
-              Clases en vivo, recursos descargables y un equipo que te acompaña en cada paso.
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", lineHeight: 1.6, margin: 0 }}>
+              Cursos A1–C2, clases en vivo con tu bro, exámenes Cambridge y una plataforma que aprende contigo.
             </p>
+          </div>
+
+          {/* Trust badges */}
+          <div style={{
+            ...fadeUp(160),
+            display: "flex", gap: 12, marginTop: 40, flexWrap: "wrap", justifyContent: "center",
+          }}>
+            {[
+              { icon: "⭐", text: "4.9 rating" },
+              { icon: "👥", text: "+500 students" },
+              { icon: "🏆", text: "Cambridge focused" },
+            ].map((b) => (
+              <span key={b.text} style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "8px 16px", borderRadius: 999,
+                background: "rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.90)",
+                fontSize: 13, fontWeight: 600,
+              }}>
+                {b.icon} {b.text}
+              </span>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* ── Right panel — forms ── */}
-      <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center bg-[#F8FAFC] px-4 sm:px-6 py-8 sm:py-10">
+      {/* Right panel */}
+      <div style={{
+        flex: 1, overflowY: "auto",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+        background: "#FBFAF7", padding: "32px 16px",
+      }}>
         {/* Mobile logo */}
-        <div className="lg:hidden flex items-center gap-2.5 mb-8" style={fadeUp(0)}>
-          <img src={logoAce} alt="Acelingua" className="h-8 w-8" />
-          <span className="text-lg font-black text-foreground" style={{ fontFamily: "'Poppins', sans-serif" }}>
-            Acelingua
-          </span>
+        <div style={{ marginBottom: 32, ...fadeUp(0) }} className="lg:hidden">
+          <MebLogo size={32} />
         </div>
 
-        <div className="w-full max-w-sm sm:max-w-[400px]" style={fadeUp(60)}>
+        <div style={{ width: "100%", maxWidth: 400, ...fadeUp(60) }}>
           {showForgotPassword ? (
-            /* ── Forgot password ── */
-            <div className="space-y-6">
+            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
               <button
                 onClick={() => setShowForgotPassword(false)}
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  fontSize: 14, color: "#6E7178", background: "none", border: "none",
+                  cursor: "pointer", fontFamily: "inherit", padding: 0,
+                }}
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft size={16} />
                 Volver al inicio de sesión
               </button>
               <div>
-                <h1 className="text-2xl font-black text-foreground mb-1" style={{ fontFamily: "'Poppins', sans-serif" }}>
+                <h1 style={{
+                  fontFamily: "'Bricolage Grotesque', sans-serif",
+                  fontWeight: 800, fontSize: 26, margin: "0 0 8px", color: "#1E2128",
+                }}>
                   Recuperar contraseña
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p style={{ fontSize: 14, color: "#6E7178", margin: 0 }}>
                   Te enviaremos un enlace a tu email para restablecer tu contraseña.
                 </p>
               </div>
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="reset-email" className="text-sm font-semibold text-foreground">
-                    Email
-                  </Label>
+              <form onSubmit={handleForgotPassword} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <label style={{ fontSize: 13.5, fontWeight: 600, color: "#1E2128" }}>Email</label>
                   <Input
-                    id="reset-email"
                     type="email"
                     placeholder="tu@email.com"
                     required
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
-                    className="h-11 bg-white border-border focus-visible:ring-[#054A91]/30"
+                    style={inputStyle}
                   />
                 </div>
-                <Button
+                <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-11 bg-[#054A91] hover:bg-[#054A91]/90 text-white rounded-xl font-semibold shadow-lg shadow-[#054A91]/20 transition-all hover:-translate-y-0.5"
+                  style={{
+                    height: 44, borderRadius: 12, background: ACCENT, color: "#fff",
+                    fontWeight: 700, fontSize: 14.5, border: "none", cursor: "pointer",
+                    fontFamily: "inherit", boxShadow: "0 8px 20px rgba(76,111,255,0.28)",
+                  }}
                 >
                   {isLoading ? "Enviando..." : "Enviar enlace"}
-                </Button>
+                </button>
               </form>
             </div>
           ) : (
             <>
-              {/* Header */}
-              <div className="mb-6">
-                <h1 className="text-2xl sm:text-3xl font-black text-foreground leading-tight" style={{ fontFamily: "'Poppins', sans-serif" }}>
+              <div style={{ marginBottom: 24 }}>
+                <h1 style={{
+                  fontFamily: "'Bricolage Grotesque', sans-serif",
+                  fontWeight: 800, fontSize: "clamp(24px,4vw,30px)",
+                  margin: "0 0 8px", color: "#1E2128", lineHeight: 1.1,
+                }}>
                   {activeTab === "login" ? "¡Bienvenido de nuevo!" : "Crea tu cuenta"}
                 </h1>
-                <p className="mt-1.5 text-sm text-muted-foreground">
+                <p style={{ fontSize: 14, color: "#6E7178", margin: 0 }}>
                   {activeTab === "login"
                     ? "Ingresa tus datos para continuar"
-                    : "Únete a +1,500 estudiantes de Acelingua"}
+                    : "Únete a +500 estudiantes de myenglishbro"}
                 </p>
               </div>
 
-              {/* Tabs */}
-              <Tabs
-                value={activeTab}
-                onValueChange={(v) => setActiveTab(v as "login" | "register")}
-                className="w-full"
-              >
-                <TabsList className="grid w-full grid-cols-2 mb-5 bg-white border border-border rounded-xl p-1 h-auto">
-                  <TabsTrigger
-                    value="login"
-                    className="rounded-lg text-sm font-semibold py-2.5 data-[state=active]:bg-[#054A91] data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
+              {/* Tab selector */}
+              <div style={{
+                display: "grid", gridTemplateColumns: "1fr 1fr",
+                gap: 4, marginBottom: 24,
+                background: "#fff", borderRadius: 14,
+                padding: 4, border: "1.5px solid rgba(0,0,0,0.08)",
+              }}>
+                {(["login", "register"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    style={{
+                      height: 40, borderRadius: 11, border: "none", cursor: "pointer",
+                      fontFamily: "inherit", fontWeight: 700, fontSize: 13.5,
+                      transition: "all 0.18s",
+                      background: activeTab === tab ? ACCENT : "transparent",
+                      color: activeTab === tab ? "#fff" : "#52565E",
+                      boxShadow: activeTab === tab ? "0 4px 12px rgba(76,111,255,0.25)" : "none",
+                    }}
                   >
-                    Iniciar sesión
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="register"
-                    className="rounded-lg text-sm font-semibold py-2.5 data-[state=active]:bg-[#054A91] data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
+                    {tab === "login" ? "Iniciar sesión" : "Registrarse"}
+                  </button>
+                ))}
+              </div>
+
+              {/* Login form */}
+              {activeTab === "login" && (
+                <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <label style={{ fontSize: 13.5, fontWeight: 600, color: "#1E2128" }}>Email</label>
+                    <Input name="email" type="email" placeholder="tu@email.com" required autoComplete="email" style={inputStyle} />
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <label style={{ fontSize: 13.5, fontWeight: 600, color: "#1E2128" }}>Contraseña</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowForgotPassword(true)}
+                        style={{ fontSize: 12.5, color: ACCENT, fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
+                      >
+                        ¿Olvidaste tu contraseña?
+                      </button>
+                    </div>
+                    <div style={{ position: "relative" }}>
+                      <Input
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        required
+                        style={{ ...inputStyle, paddingRight: 44 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
+                          background: "none", border: "none", cursor: "pointer", color: "#9296A0",
+                          display: "flex", alignItems: "center",
+                        }}
+                      >
+                        {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    style={{
+                      height: 44, borderRadius: 12, background: ACCENT, color: "#fff",
+                      fontWeight: 700, fontSize: 14.5, border: "none", cursor: "pointer",
+                      fontFamily: "inherit", boxShadow: "0 8px 20px rgba(76,111,255,0.28)",
+                      marginTop: 4,
+                    }}
                   >
-                    Registrarse
-                  </TabsTrigger>
-                </TabsList>
+                    {isLoading ? "Ingresando..." : "Iniciar sesión"}
+                  </button>
+                </form>
+              )}
 
-                {/* ── Login ── */}
-                <TabsContent value="login">
-                  <form onSubmit={handleLogin} className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="login-email" className="text-sm font-semibold text-foreground">
-                        Email
-                      </Label>
+              {/* Register form */}
+              {activeTab === "register" && (
+                <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <label style={{ fontSize: 13.5, fontWeight: 600, color: "#1E2128" }}>Nombre completo</label>
+                    <Input name="name" type="text" placeholder="Tu nombre" required style={inputStyle} />
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <label style={{ fontSize: 13.5, fontWeight: 600, color: "#1E2128" }}>Email</label>
+                    <Input name="email" type="email" placeholder="tu@email.com" required style={inputStyle} />
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <label style={{ fontSize: 13.5, fontWeight: 600, color: "#1E2128" }}>Celular</label>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <Select value={countryCode} onValueChange={setCountryCode}>
+                        <SelectTrigger style={{ ...inputStyle, width: 120, flexShrink: 0 }}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent style={{ maxHeight: 240 }}>
+                          {COUNTRY_CODES.map((c, i) => (
+                            <SelectItem key={`${c.code}-${i}`} value={c.code} style={{ fontSize: 13.5 }}>
+                              {c.flag} {c.code}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input name="phone" type="tel" placeholder="987654321" required inputMode="numeric" style={{ ...inputStyle, flex: 1 }} />
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <label style={{ fontSize: 13.5, fontWeight: 600, color: "#1E2128" }}>Contraseña</label>
+                    <div style={{ position: "relative" }}>
                       <Input
-                        id="login-email"
-                        name="email"
-                        type="email"
-                        placeholder="tu@email.com"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Mínimo 6 caracteres"
                         required
-                        autoComplete="email"
-                        className="h-11 bg-white border-border focus-visible:ring-[#054A91]/30"
+                        minLength={6}
+                        style={{ ...inputStyle, paddingRight: 44 }}
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
+                          background: "none", border: "none", cursor: "pointer", color: "#9296A0",
+                          display: "flex", alignItems: "center",
+                        }}
+                      >
+                        {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                      </button>
                     </div>
+                  </div>
 
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="login-password" className="text-sm font-semibold text-foreground">
-                          Contraseña
-                        </Label>
-                        <button
-                          type="button"
-                          onClick={() => setShowForgotPassword(true)}
-                          className="text-xs text-[#054A91] font-semibold hover:underline"
-                        >
-                          ¿Olvidaste tu contraseña?
-                        </button>
-                      </div>
-                      <div className="relative">
-                        <Input
-                          id="login-password"
-                          name="password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          required
-                          className="h-11 pr-11 bg-white border-border focus-visible:ring-[#054A91]/30"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
-                        </button>
-                      </div>
-                    </div>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    style={{
+                      height: 44, borderRadius: 12, background: ACCENT, color: "#fff",
+                      fontWeight: 700, fontSize: 14.5, border: "none", cursor: "pointer",
+                      fontFamily: "inherit", boxShadow: "0 8px 20px rgba(76,111,255,0.28)",
+                      marginTop: 4,
+                    }}
+                  >
+                    {isLoading ? "Creando cuenta..." : "Crear cuenta gratis"}
+                  </button>
 
-                    <Button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full h-11 bg-[#054A91] hover:bg-[#054A91]/90 text-white rounded-xl font-semibold shadow-lg shadow-[#054A91]/20 transition-all hover:-translate-y-0.5 mt-1"
-                    >
-                      {isLoading ? "Ingresando..." : "Iniciar sesión"}
-                    </Button>
-                  </form>
-                </TabsContent>
+                  <p style={{ fontSize: 12, textAlign: "center", color: "#9296A0", margin: 0 }}>
+                    Al registrarte aceptas nuestros{" "}
+                    <a href="#" style={{ color: ACCENT, fontWeight: 600, textDecoration: "none" }}>
+                      términos y condiciones
+                    </a>
+                  </p>
+                </form>
+              )}
 
-                {/* ── Register ── */}
-                <TabsContent value="register">
-                  <form onSubmit={handleRegister} className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="register-name" className="text-sm font-semibold text-foreground">
-                        Nombre completo
-                      </Label>
-                      <Input
-                        id="register-name"
-                        name="name"
-                        type="text"
-                        placeholder="Tu nombre"
-                        required
-                        className="h-11 bg-white border-border focus-visible:ring-[#054A91]/30"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="register-email" className="text-sm font-semibold text-foreground">
-                        Email
-                      </Label>
-                      <Input
-                        id="register-email"
-                        name="email"
-                        type="email"
-                        placeholder="tu@email.com"
-                        required
-                        className="h-11 bg-white border-border focus-visible:ring-[#054A91]/30"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-semibold text-foreground">Celular</Label>
-                      <div className="flex gap-2">
-                        <Select value={countryCode} onValueChange={setCountryCode}>
-                          <SelectTrigger className="w-[120px] shrink-0 h-11 bg-white border-border text-sm">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-60">
-                            {COUNTRY_CODES.map((c, i) => (
-                              <SelectItem key={`${c.code}-${i}`} value={c.code} className="text-sm">
-                                {c.flag} {c.code}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Input
-                          name="phone"
-                          type="tel"
-                          placeholder="987654321"
-                          required
-                          inputMode="numeric"
-                          className="flex-1 h-11 bg-white border-border focus-visible:ring-[#054A91]/30"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="register-password" className="text-sm font-semibold text-foreground">
-                        Contraseña
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="register-password"
-                          name="password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Mínimo 6 caracteres"
-                          required
-                          minLength={6}
-                          className="h-11 pr-11 bg-white border-border focus-visible:ring-[#054A91]/30"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full h-11 bg-[#054A91] hover:bg-[#054A91]/90 text-white rounded-xl font-semibold shadow-lg shadow-[#054A91]/20 transition-all hover:-translate-y-0.5 mt-1"
-                    >
-                      {isLoading ? "Creando cuenta..." : "Crear cuenta gratis"}
-                    </Button>
-
-                    <p className="text-xs text-center text-muted-foreground pt-1">
-                      Al registrarte aceptas nuestros{" "}
-                      <a href="#" className="text-[#054A91] font-semibold hover:underline">
-                        términos y condiciones
-                      </a>
-                    </p>
-                  </form>
-                </TabsContent>
-              </Tabs>
-
-              {/* Divider with trust badge */}
-              <div className="mt-6 pt-5 border-t border-border flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <GraduationCap className="h-3.5 w-3.5 text-[#054A91]" />
+              {/* Footer trust */}
+              <div style={{
+                marginTop: 28, paddingTop: 20, borderTop: "1px solid rgba(0,0,0,0.08)",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                fontSize: 12.5, color: "#9296A0",
+              }}>
+                <span>🎓</span>
                 <span>Plataforma educativa verificada</span>
-                <span className="text-[#F59E0B] font-bold">⭐ 4.9</span>
+                <span style={{ color: "#F59E0B", fontWeight: 700 }}>⭐ 4.9</span>
               </div>
             </>
           )}
