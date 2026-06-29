@@ -43,6 +43,9 @@ import SalonActividades from "./pages/salon/SalonActividades";
 import SalonDetail from "./pages/SalonDetail";
 import CoursePublicDetail from "./pages/CoursePublicDetail";
 import Resources from "./pages/Resources";
+import Lessons from "./pages/Lessons";
+import LessonDetail from "./pages/LessonDetail";
+import AdminLessonsBlog from "./pages/admin/AdminLessonsBlog";
 import NotFound from "./pages/NotFound";
 import PaymentSuccess from "./pages/payment/Success";
 import PaymentFailure from "./pages/payment/Failure";
@@ -65,6 +68,8 @@ const App = () => (
             <Route path="/programs/:slug" element={<ProgramDetail />} />
             <Route path="/live-classes" element={<LiveClasses />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/lessons" element={<Lessons />} />
+            <Route path="/lessons/:slug" element={<LessonDetail />} />
             <Route path="/courses-catalog" element={<Store />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/login" element={<Navigate to="/auth?tab=login" replace />} />
@@ -123,6 +128,7 @@ const App = () => (
               <Route path="word-survivor" element={<AdminWordSurvivor />} />
               <Route path="word-survivor-tienda" element={<AdminWordSurvivorTienda />} />
               <Route path="word-survivor-recargas" element={<AdminWordSurvivorRecargas />} />
+              <Route path="lessons" element={<AdminLessonsBlog />} />
             </Route>
 
             {/* Teacher routes */}

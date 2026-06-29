@@ -185,6 +185,51 @@ export type Database = {
           },
         ]
       }
+      lecciones_publicas: {
+        Row: {
+          id: string
+          titulo: string
+          slug: string
+          descripcion: string | null
+          contenido_html: string | null
+          youtube_url: string | null
+          imagen_url: string | null
+          nivel: string
+          categoria: string
+          publicado: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          titulo: string
+          slug: string
+          descripcion?: string | null
+          contenido_html?: string | null
+          youtube_url?: string | null
+          imagen_url?: string | null
+          nivel?: string
+          categoria?: string
+          publicado?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          titulo?: string
+          slug?: string
+          descripcion?: string | null
+          contenido_html?: string | null
+          youtube_url?: string | null
+          imagen_url?: string | null
+          nivel?: string
+          categoria?: string
+          publicado?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       matriculas: {
         Row: {
           curso_id: string

@@ -8,7 +8,7 @@ const navLinks = [
   { label: "Store", href: "/store" },
   { label: "Live Classes", href: "/live-classes" },
   { label: "Programs", href: "/programs" },
-  { label: "Lessons", href: "#lessons" },
+  { label: "Lessons", href: "/lessons" },
   { label: "Resources", href: "/resources" },
 ];
 
