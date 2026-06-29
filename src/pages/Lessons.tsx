@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { AnnouncementsCarousel } from "@/components/dashboard/AnnouncementsCarousel";
 import { BookOpen } from "lucide-react";
 
 const ACCENT = "#4C6FFF";
@@ -187,52 +188,60 @@ const Lessons = () => {
         </div>
       </section>
 
-      {/* Grid */}
+      {/* Grid + Sidebar */}
       <section style={{ padding: "0 24px clamp(60px,10vh,120px)" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          {isLoading ? (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                gap: "24px",
-              }}
-            >
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div
-                  key={i}
-                  style={{
-                    height: "220px",
-                    borderRadius: "16px",
-                    background: "#F3F4F6",
-                    animation: "pulse 1.5s ease-in-out infinite",
-                  }}
-                />
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "80px 0" }}>
-              <BookOpen style={{ width: 48, height: 48, color: "#D1D5DB", margin: "0 auto 16px" }} />
-              <h3 style={{ fontSize: "18px", fontWeight: 600, color: "#6B7280", marginBottom: "8px" }}>
-                No hay lecciones en esta combinación
-              </h3>
-              <p style={{ color: "#9CA3AF", fontSize: "14px" }}>
-                Prueba con otro nivel o categoría
-              </p>
-            </div>
-          ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                gap: "24px",
-              }}
-            >
-              {filtered.map((lesson) => (
-                <LessonCard key={lesson.id} lesson={lesson} />
-              ))}
-            </div>
-          )}
+        <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", gap: "32px", alignItems: "flex-start" }}>
+          {/* Lessons grid */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {isLoading ? (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                  gap: "24px",
+                }}
+              >
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div
+                    key={i}
+                    style={{
+                      height: "220px",
+                      borderRadius: "16px",
+                      background: "#F3F4F6",
+                      animation: "pulse 1.5s ease-in-out infinite",
+                    }}
+                  />
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "80px 0" }}>
+                <BookOpen style={{ width: 48, height: 48, color: "#D1D5DB", margin: "0 auto 16px" }} />
+                <h3 style={{ fontSize: "18px", fontWeight: 600, color: "#6B7280", marginBottom: "8px" }}>
+                  No hay lecciones en esta combinación
+                </h3>
+                <p style={{ color: "#9CA3AF", fontSize: "14px" }}>
+                  Prueba con otro nivel o categoría
+                </p>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                  gap: "24px",
+                }}
+              >
+                {filtered.map((lesson) => (
+                  <LessonCard key={lesson.id} lesson={lesson} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Sticky sidebar */}
+          <div style={{ width: "280px", flexShrink: 0, position: "sticky", top: "88px" }}>
+            <AnnouncementsCarousel />
+          </div>
         </div>
       </section>
 
