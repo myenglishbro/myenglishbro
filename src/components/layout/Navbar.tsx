@@ -75,7 +75,6 @@ export const Navbar = () => {
         {/* Desktop nav */}
         <nav
           style={{
-            display: "flex",
             alignItems: "center",
             gap: "4px",
           }}
@@ -127,7 +126,7 @@ export const Navbar = () => {
         </nav>
 
         {/* Desktop CTAs */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }} className="hidden md:flex">
+        <div style={{ alignItems: "center", gap: "8px" }} className="hidden md:flex">
           <Link
             to="/auth"
             style={{
