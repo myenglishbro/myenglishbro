@@ -1,6 +1,11 @@
-import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, Swords } from "lucide-react";
+import { useState, useEffect, lazy, Suspense } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+
+const WordSurvivorGame = lazy(() =>
+  import("@/components/dashboard/word-survivor/WordSurvivorGame").then((m) => ({ default: m.WordSurvivorGame }))
+);
 
 const ACCENT = "#4C6FFF";
 
@@ -9,12 +14,14 @@ const navLinks = [
   { label: "Live Classes", href: "/live-classes" },
   { label: "Programs", href: "/programs" },
   { label: "Lessons", href: "/lessons" },
-  { label: "Resources", href: "/resources" },
 ];
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [gameOpen, setGameOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -22,6 +29,15 @@ export const Navbar = () => {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const handlePlayClick = () => {
+    setIsOpen(false);
+    if (isAuthenticated) {
+      setGameOpen(true);
+    } else {
+      navigate("/auth?tab=register");
+    }
+  };
 
   return (
     <header
@@ -123,6 +139,21 @@ export const Navbar = () => {
               </Link>
             )
           )}
+          <button
+            onClick={handlePlayClick}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "6px",
+              padding: "7px 14px", borderRadius: "999px",
+              fontSize: "14.5px", fontWeight: 600, color: ACCENT,
+              background: "rgba(76,111,255,0.08)", border: "none", cursor: "pointer",
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(76,111,255,0.14)")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(76,111,255,0.08)")}
+          >
+            <Swords size={15} />
+            Word Survivor
+          </button>
         </nav>
 
         {/* Desktop CTAs */}
@@ -214,6 +245,18 @@ export const Navbar = () => {
                 </Link>
               )
             )}
+            <button
+              onClick={handlePlayClick}
+              style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                padding: "11px 14px", borderRadius: "12px",
+                fontSize: "15px", fontWeight: 600, color: ACCENT,
+                background: "transparent", border: "none", textAlign: "left", cursor: "pointer",
+              }}
+            >
+              <Swords size={16} />
+              Word Survivor
+            </button>
 
             <div
               style={{
@@ -249,6 +292,12 @@ export const Navbar = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {gameOpen && (
+        <Suspense fallback={null}>
+          <WordSurvivorGame open={gameOpen} onOpenChange={setGameOpen} />
+        </Suspense>
       )}
     </header>
   );

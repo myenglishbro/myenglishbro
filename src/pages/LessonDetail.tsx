@@ -3,19 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { ChevronLeft } from "lucide-react";
-
-const ACCENT = "#4C6FFF";
-
-const NIVEL_COLORS: Record<string, string> = {
-  A1: "#22c55e",
-  A2: "#84cc16",
-  B1: "#eab308",
-  B2: "#f97316",
-  C1: "#ef4444",
-  C2: "#8b5cf6",
-  All: ACCENT,
-};
+import { ChevronLeft, BookOpen } from "lucide-react";
+import { ACCENT, NIVEL_COLORS, LessonCard, type LeccionPublica } from "@/components/lessons/LessonCard";
 
 const toEmbedUrl = (url: string): string => {
   if (!url) return "";
@@ -49,6 +38,23 @@ const LessonDetail = () => {
     retry: false,
   });
 
+  const { data: related = [] } = useQuery({
+    queryKey: ["lecciones-relacionadas", lesson?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lecciones_publicas")
+        .select("id, titulo, slug, descripcion, youtube_url, imagen_url, nivel, categoria, created_at")
+        .eq("publicado", true)
+        .neq("id", lesson!.id)
+        .or(`nivel.eq.${lesson!.nivel},categoria.eq.${lesson!.categoria}`)
+        .order("created_at", { ascending: false })
+        .limit(4);
+      if (error) throw error;
+      return data as LeccionPublica[];
+    },
+    enabled: !!lesson,
+  });
+
   if (isLoading) {
     return (
       <div style={{ minHeight: "100vh", background: "#FBFAF7", fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}>
@@ -80,14 +86,14 @@ const LessonDetail = () => {
     >
       <Navbar />
 
-      <main style={{ maxWidth: "800px", margin: "0 auto", padding: "clamp(32px,6vh,64px) 24px clamp(60px,10vh,120px)" }}>
+      <main style={{ maxWidth: "1120px", margin: "0 auto", padding: "clamp(24px,4vh,40px) 24px clamp(60px,10vh,120px)" }}>
         {/* Back */}
         <Link
           to="/lessons"
           style={{
             display: "inline-flex", alignItems: "center", gap: "6px",
             fontSize: "14px", fontWeight: 600, color: "#6B7280",
-            textDecoration: "none", marginBottom: "32px",
+            textDecoration: "none", marginBottom: "24px",
             transition: "color 0.15s",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.color = ACCENT)}
@@ -97,54 +103,136 @@ const LessonDetail = () => {
           All Lessons
         </Link>
 
-        {/* Badges */}
-        <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
-          <span
-            style={{
-              display: "inline-block", padding: "3px 12px", borderRadius: "999px",
-              fontSize: "12px", fontWeight: 700,
-              background: `${nivelColor}18`, color: nivelColor,
-              letterSpacing: "0.04em",
-            }}
-          >
-            {lesson.nivel}
-          </span>
-          <span
-            style={{
-              display: "inline-block", padding: "3px 12px", borderRadius: "999px",
-              fontSize: "12px", fontWeight: 600,
-              background: "#F3F4F6", color: "#6B7280",
-            }}
-          >
-            {lesson.categoria}
-          </span>
-        </div>
-
-        {/* Title */}
-        <h1
+        {/* Hero card: text + image side by side, layered for depth */}
+        <div
           style={{
-            fontFamily: "'Bricolage Grotesque', sans-serif",
-            fontSize: "clamp(26px,4vw,40px)", fontWeight: 800,
-            letterSpacing: "-0.025em", lineHeight: 1.2,
-            marginBottom: lesson.descripcion ? "14px" : "32px",
+            position: "relative",
+            borderRadius: "32px",
+            overflow: "hidden",
+            border: "1.5px solid #EEF0F4",
+            background: "linear-gradient(135deg, #ffffff 0%, #FBFAF7 100%)",
+            boxShadow: "0 30px 70px -30px rgba(20,24,40,0.22)",
+            padding: "clamp(24px,4vw,44px)",
+            marginBottom: "48px",
           }}
         >
-          {lesson.titulo}
-        </h1>
-
-        {lesson.descripcion && (
-          <p
+          {/* decorative depth blobs */}
+          <div
             style={{
-              fontSize: "17px", color: "#5A6272", lineHeight: 1.65,
-              marginBottom: "32px",
+              position: "absolute", top: "-70px", right: "-70px",
+              width: "220px", height: "220px", borderRadius: "50%",
+              background: `radial-gradient(circle, ${nivelColor}35, transparent 70%)`,
+              pointerEvents: "none",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute", bottom: "-60px", left: "8%",
+              width: "180px", height: "180px", borderRadius: "50%",
+              background: `radial-gradient(circle, ${ACCENT}22, transparent 70%)`,
+              pointerEvents: "none",
+            }}
+          />
+
+          <div
+            style={{
+              position: "relative", zIndex: 1,
+              display: "flex", flexWrap: "wrap",
+              alignItems: "center", gap: "clamp(28px,5vw,52px)",
             }}
           >
-            {lesson.descripcion}
-          </p>
-        )}
+            {/* Text */}
+            <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+              <div style={{ display: "flex", gap: "8px", marginBottom: "18px", flexWrap: "wrap" }}>
+                <span
+                  style={{
+                    display: "inline-block", padding: "3px 12px", borderRadius: "999px",
+                    fontSize: "12px", fontWeight: 700,
+                    background: `${nivelColor}18`, color: nivelColor,
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  {lesson.nivel}
+                </span>
+                <span
+                  style={{
+                    display: "inline-block", padding: "3px 12px", borderRadius: "999px",
+                    fontSize: "12px", fontWeight: 600,
+                    background: "#F3F4F6", color: "#6B7280",
+                  }}
+                >
+                  {lesson.categoria}
+                </span>
+              </div>
 
-        <hr style={{ border: "none", borderTop: "1.5px solid #F0F0EE", marginBottom: "40px" }} />
+              <h1
+                style={{
+                  fontFamily: "'Bricolage Grotesque', sans-serif",
+                  fontSize: "clamp(24px,3.4vw,38px)", fontWeight: 800,
+                  letterSpacing: "-0.025em", lineHeight: 1.18,
+                  marginBottom: lesson.descripcion ? "14px" : "0",
+                }}
+              >
+                {lesson.titulo}
+              </h1>
 
+              {lesson.descripcion && (
+                <p
+                  style={{
+                    fontSize: "16px", color: "#5A6272", lineHeight: 1.65,
+                    margin: 0,
+                  }}
+                >
+                  {lesson.descripcion}
+                </p>
+              )}
+            </div>
+
+            {/* Image, layered with an offset color panel behind for depth */}
+            <div style={{ flex: "1 1 280px", display: "flex", justifyContent: "center" }}>
+              <div style={{ position: "relative", width: "100%", maxWidth: "360px" }}>
+                <div
+                  style={{
+                    position: "absolute", inset: "16px -16px -16px 16px",
+                    borderRadius: "26px",
+                    background: `linear-gradient(135deg, ${nivelColor}, ${ACCENT})`,
+                    opacity: 0.7,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "relative",
+                    aspectRatio: "4 / 3",
+                    borderRadius: "22px",
+                    overflow: "hidden",
+                    border: "5px solid #fff",
+                    boxShadow: "0 24px 48px -18px rgba(20,24,40,0.35)",
+                    background: lesson.imagen_url
+                      ? `linear-gradient(135deg, ${nivelColor}10 0%, ${ACCENT}0A 100%)`
+                      : `linear-gradient(135deg, ${nivelColor} 0%, ${ACCENT} 100%)`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: lesson.imagen_url ? "8px" : "0",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  {lesson.imagen_url ? (
+                    <img
+                      src={lesson.imagen_url}
+                      alt={lesson.titulo}
+                      style={{ maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto", objectFit: "contain", borderRadius: "14px" }}
+                    />
+                  ) : (
+                    <BookOpen style={{ width: 60, height: 60, color: "rgba(255,255,255,0.85)" }} />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ maxWidth: "820px", margin: "0 auto" }}>
         {/* Featured YouTube embed */}
         {embedUrl && (
           <div
@@ -197,7 +285,36 @@ const LessonDetail = () => {
             })}
           </p>
         </div>
+        </div>
       </main>
+
+      {/* Related lessons */}
+      {related.length > 0 && (
+        <section style={{ padding: "0 24px clamp(60px,10vh,100px)" }}>
+          <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+            <h2
+              style={{
+                fontFamily: "'Bricolage Grotesque', sans-serif",
+                fontSize: "clamp(20px,2.6vw,26px)", fontWeight: 800,
+                letterSpacing: "-0.02em", marginBottom: "24px",
+              }}
+            >
+              Más lecciones para ti
+            </h2>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+                gap: "24px",
+              }}
+            >
+              {related.map((r) => (
+                <LessonCard key={r.id} lesson={r} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <Footer />
 

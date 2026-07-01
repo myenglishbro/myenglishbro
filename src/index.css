@@ -2,140 +2,130 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Acelingua Language Center Design System - Clean & Light Theme */
+/* MyEnglishBro Design System — Indigo · Teal · Amber */
 
 @layer base {
   :root {
-    /* Acelingua Brand Palette */
-    --background: 210 20% 98%; /* #F8FAFC */
-    --background-soft: 210 25% 96%;
-    --foreground: 222 47% 11%; /* #0F172A */
+    --background: 210 20% 98%;
+    --background-soft: 240 10% 96%;
+    --foreground: 240 10% 10%;
 
-    /* Cards & Surfaces */
-    --card: 0 0% 100%; /* #FFFFFF */
-    --card-foreground: 222 47% 11%;
-    
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 10%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 240 10% 10%;
 
-    /* Primary - Deep Navy Blue #0F4C81 */
-    --primary: 207 79% 28%;
+    /* Primary — Indigo #4F46E5 */
+    --primary: 239 84% 60%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Teal Technology #1FA6A6 */
-    --secondary: 180 68% 39%;
-    --secondary-soft: 180 68% 95%;
+    /* Secondary — Teal #0D9488 */
+    --secondary: 175 84% 32%;
+    --secondary-soft: 175 84% 95%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Accent - Warm Amber #F59E0B */
+    /* Accent — Amber #F59E0B */
     --accent: 38 92% 50%;
-    --accent-sky: 199 89% 48%;
     --accent-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%; /* #64748B */
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%; /* #E5E7EB */
-    --input: 220 13% 91%;
-    --ring: 207 79% 28%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 239 84% 60%;
 
     --radius: 0.75rem;
 
-    /* Custom tokens */
-    --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --card-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --card-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    
+    --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+    --card-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+    --card-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+
     --transition-fast: all 150ms ease;
     --transition-normal: all 200ms ease;
     --transition-slow: all 300ms ease;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(207 79% 28%), hsl(180 68% 39%));
-    --gradient-secondary: linear-gradient(135deg, hsl(180 68% 39%), hsl(180 68% 34%));
-    --gradient-hero: linear-gradient(180deg, hsl(207 79% 28% / 0.05) 0%, transparent 50%);
+    /* Brand gradients */
+    --gradient-brand: linear-gradient(135deg, #4f46e5, #0d9488);
+    --gradient-dark: linear-gradient(135deg, #0a0818, #0d0b1f);
   }
 
-  /* Dashboard Light Theme - Unified with Landing */
+  /* Dashboard tokens — indigo-based */
   .dashboard {
-    --dashboard-bg: 210 20% 98%;
+    --dashboard-bg: 240 10% 98%;
     --dashboard-sidebar: 0 0% 100%;
     --dashboard-card: 0 0% 100%;
-    --dashboard-chip: 207 79% 97%;
-    --dashboard-input: 210 40% 96%;
-    --dashboard-divider: 220 13% 91%;
-    
-    --dashboard-text-primary: 222 47% 11%;
-    --dashboard-text-muted: 215 16% 47%;
-    --dashboard-text-soft: 215 20% 65%;
-    --dashboard-text-subtle: 215 20% 75%;
-    
-    --dashboard-accent-primary: 207 79% 28%;
-    --dashboard-accent-secondary: 180 68% 39%;
+    --dashboard-chip: 239 84% 97%;
+    --dashboard-input: 240 5% 96%;
+    --dashboard-divider: 240 6% 90%;
+
+    --dashboard-text-primary: 240 10% 10%;
+    --dashboard-text-muted: 240 4% 46%;
+    --dashboard-text-soft: 240 5% 62%;
+    --dashboard-text-subtle: 240 5% 75%;
+
+    --dashboard-accent-primary: 239 84% 60%;
+    --dashboard-accent-secondary: 175 84% 32%;
     --dashboard-accent-amber: 38 92% 50%;
-    --dashboard-accent-sky: 199 89% 48%;
-    
-    --dashboard-state-hover: 207 79% 28% / 0.08;
-    --dashboard-state-active: 207 79% 28%;
-    --dashboard-state-focus: 207 79% 28%;
-    --dashboard-state-success: 180 68% 39%;
-    
-    --dashboard-badge-bg: 207 79% 97%;
-    --dashboard-tag-bg: 210 40% 96%;
+
+    --dashboard-state-hover: 239 84% 60% / 0.08;
+    --dashboard-state-active: 239 84% 60%;
+    --dashboard-state-focus: 239 84% 60%;
+    --dashboard-state-success: 175 84% 32%;
+
+    --dashboard-badge-bg: 239 84% 97%;
+    --dashboard-tag-bg: 240 5% 96%;
   }
 
-  /* Proper dark theme - slate gray based */
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 217 33% 17%;
-    --card-foreground: 210 40% 98%;
-    --popover: 217 33% 17%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 207 79% 45%;
+    --background: 240 10% 10%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 15%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 15%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 239 84% 67%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 180 68% 45%;
+    --secondary: 175 84% 42%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 217 33% 25%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 240 10% 22%;
+    --muted-foreground: 240 5% 62%;
     --accent: 38 92% 50%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 217 33% 25%;
-    --input: 217 33% 25%;
-    --ring: 207 79% 45%;
+    --border: 240 10% 22%;
+    --input: 240 10% 22%;
+    --ring: 239 84% 67%;
   }
 
-  /* Force light mode */
   .light,
-  .light * {
-    color-scheme: light;
-  }
-  
+  .light * { color-scheme: light; }
+
   .light {
     --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    --foreground: 240 10% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 240 10% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 207 79% 28%;
+    --popover-foreground: 240 10% 10%;
+    --primary: 239 84% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 180 68% 39%;
+    --secondary: 175 84% 32%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
     --accent: 38 92% 50%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 207 79% 28%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 239 84% 60%;
   }
 }
 
@@ -257,6 +247,33 @@
   .level-c1 { @apply bg-indigo-100 text-indigo-700 border-indigo-200; }
   .level-c2 { @apply bg-violet-100 text-violet-700 border-violet-200; }
 }
+
+/* Scroll reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 80ms; }
+.reveal-delay-2 { transition-delay: 160ms; }
+.reveal-delay-3 { transition-delay: 240ms; }
+.reveal-delay-4 { transition-delay: 320ms; }
+.reveal-delay-5 { transition-delay: 400ms; }
+
+/* Floating card animation for hero */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+.animate-float          { animation: float  6s ease-in-out infinite; }
+.animate-float-delay-1  { animation: float  8s ease-in-out infinite 1.2s; }
+.animate-float-delay-2  { animation: float  9s ease-in-out infinite 2.0s; }
+.animate-float-delay-3  { animation: float  7s ease-in-out infinite 0.8s; }
 
 /* Smooth animations */
 @keyframes fade-in-up {
