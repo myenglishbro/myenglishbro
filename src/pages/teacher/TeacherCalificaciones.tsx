@@ -140,7 +140,7 @@ function renderRespuesta(actividad: Actividad, entrega: Entrega) {
           const correct = selectedIndex === q.correctIndex;
           return (
             <div key={q.id} className={`p-2 rounded text-sm ${correct ? "bg-green-50" : "bg-red-50"}`}>
-              <p className="font-medium mb-1">{i + 1}. {q.question}</p>
+              <p className="font-medium mb-1 whitespace-pre-wrap">{i + 1}. {q.question}</p>
               <div className="flex items-center gap-2">
                 <span className={`flex-1 ${correct ? "text-green-700" : "text-red-700"}`}>
                   {selectedIndex !== undefined ? q.options[selectedIndex] : "(Sin respuesta)"}
@@ -165,7 +165,7 @@ function renderRespuesta(actividad: Actividad, entrega: Entrega) {
       <div className="space-y-3">
         {questions.map((q, i) => (
           <div key={q.id}>
-            <p className="text-sm font-medium mb-1">{i + 1}. {q.question}</p>
+            <p className="text-sm font-medium mb-1 whitespace-pre-wrap">{i + 1}. {q.question}</p>
             <div className="bg-muted/40 rounded-md p-3 text-sm whitespace-pre-wrap">
               {studentAnswers[q.id] || "(Sin respuesta)"}
             </div>

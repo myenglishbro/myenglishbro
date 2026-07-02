@@ -189,7 +189,7 @@ function FillBlanksActivity({
 
   return (
     <div>
-      <p className="text-sm leading-relaxed">
+      <p className="text-sm leading-relaxed whitespace-pre-wrap">
         {parts.map((part, i) => {
           const blank = content.blanks[blankIndex];
           const currentIndex = blankIndex++;
@@ -258,7 +258,7 @@ function MultipleChoiceActivity({
     <div className="space-y-4">
       {content.questions.map((q, qi) => (
         <div key={q.id} className="space-y-2">
-          <p className="text-sm font-medium">{qi + 1}. {q.question}</p>
+          <p className="text-sm font-medium whitespace-pre-wrap">{qi + 1}. {q.question}</p>
           <div className="space-y-1.5">
             {q.options.map((opt, oi) => {
               const selected = answers[q.id] === oi;
@@ -319,7 +319,7 @@ function OpenQuestionsActivity({
     <div className="space-y-4">
       {content.questions.map((q, qi) => (
         <div key={q.id} className="space-y-1.5">
-          <p className="text-sm font-medium">{qi + 1}. {q.question}</p>
+          <p className="text-sm font-medium whitespace-pre-wrap">{qi + 1}. {q.question}</p>
           {readonly ? (
             <div className="bg-muted/40 rounded-lg p-3 text-sm whitespace-pre-wrap">
               {answers[q.id] || "(Sin respuesta)"}
@@ -360,7 +360,7 @@ function WritingActivityComp({
   return (
     <div className="space-y-3">
       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-        <p className="text-sm font-medium text-green-800">{content.prompt}</p>
+        <p className="text-sm font-medium text-green-800 whitespace-pre-wrap">{content.prompt}</p>
         <p className="text-xs text-green-600 mt-1">
           {content.min_words > 0 && `Mín. ${content.min_words} palabras`}
           {content.min_words > 0 && content.max_words > 0 && " · "}
@@ -777,7 +777,7 @@ const SalonActividades = () => {
                   </Badge>
                 </div>
                 {activeActivity.instrucciones && (
-                  <p className="text-sm text-muted-foreground mt-1">{activeActivity.instrucciones}</p>
+                  <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{activeActivity.instrucciones}</p>
                 )}
               </DialogHeader>
 
