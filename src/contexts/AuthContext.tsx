@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Clear invalid session from localStorage
   const clearInvalidSession = () => {
     try {
-      localStorage.removeItem('sb-zjobnxbzdtqsgbfdxzqo-auth-token');
+      localStorage.removeItem('sb-dykagdlfhlfhlcqhmvqn-auth-token');
     } catch (err) {
       console.error("Error clearing session:", err);
     }

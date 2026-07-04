@@ -272,7 +272,7 @@ const AdminUsuarios = () => {
       if (!session) throw new Error("No session");
 
       const response = await fetch(
-        `https://zjobnxbzdtqsgbfdxzqo.supabase.co/functions/v1/admin-delete-user`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-delete-user`,
         {
           method: "POST",
           headers: {
@@ -307,7 +307,7 @@ const AdminUsuarios = () => {
       if (!session) throw new Error("No session");
 
       const response = await fetch(
-        `https://zjobnxbzdtqsgbfdxzqo.supabase.co/functions/v1/admin-reset-password`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-reset-password`,
         {
           method: "POST",
           headers: {
@@ -340,7 +340,7 @@ const AdminUsuarios = () => {
       if (!session) throw new Error("No session");
 
       const response = await fetch(
-        `https://zjobnxbzdtqsgbfdxzqo.supabase.co/functions/v1/admin-create-user`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-create-user`,
         {
           method: "POST",
           headers: {
