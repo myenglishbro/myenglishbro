@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Clock } from "lucide-react";
-import { ScheduleGrid } from "@/components/schedule/ScheduleGrid";
+import { ScheduleGrid, formatRangoHora } from "@/components/schedule/ScheduleGrid";
 import { useHorarioQuery, useUpdateHorarioSlot, type HorarioSlot } from "@/hooks/useHorario";
 
 const DIAS_LARGO = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -64,7 +64,7 @@ const AdminHorario = () => {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              {editingSlot && `${DIAS_LARGO[editingSlot.dia_semana - 1]} ${editingSlot.hora_inicio.toString().padStart(2, "0")}:00 - ${(editingSlot.hora_inicio + 1).toString().padStart(2, "0")}:00`}
+              {editingSlot && `${DIAS_LARGO[editingSlot.dia_semana - 1]} · ${formatRangoHora(editingSlot.hora_inicio)}`}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-2">

@@ -4,7 +4,17 @@ import type { HorarioSlot } from "@/hooks/useHorario";
 const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const HORAS = Array.from({ length: 17 }, (_, i) => i + 6); // 6..22
 
-const formatHora = (h: number) => `${h.toString().padStart(2, "0")}:00`;
+const to12h = (h: number) => {
+  const hour = h % 12 === 0 ? 12 : h % 12;
+  const period = h < 12 ? "am" : "pm";
+  return { hour, period };
+};
+
+export const formatRangoHora = (horaInicio: number) => {
+  const inicio = to12h(horaInicio);
+  const fin = to12h(horaInicio + 1);
+  return `${inicio.hour} a ${fin.hour} ${fin.period}`;
+};
 
 type ScheduleGridProps = {
   slots: HorarioSlot[];
@@ -23,8 +33,8 @@ export const ScheduleGrid = ({
 
   return (
     <div className="overflow-x-auto">
-      <div className="min-w-[640px]">
-        <div className="grid grid-cols-8 gap-1 mb-1">
+      <div className="min-w-[700px]">
+        <div className="grid grid-cols-[88px_repeat(7,minmax(0,1fr))] gap-1 mb-1">
           <div />
           {DIAS.map((dia) => (
             <div key={dia} className="text-center text-xs font-semibold text-muted-foreground py-1">
@@ -34,8 +44,8 @@ export const ScheduleGrid = ({
         </div>
         {HORAS.map((hora) => (
           <div key={hora} className="grid grid-cols-8 gap-1 mb-1">
-            <div className="text-xs text-muted-foreground flex items-center justify-end pr-2">
-              {formatHora(hora)}
+            <div className="text-xs text-muted-foreground flex items-center justify-end pr-2 whitespace-nowrap">
+              {formatRangoHora(hora)}
             </div>
             {DIAS.map((_, i) => {
               const diaSemana = i + 1;
