@@ -295,6 +295,7 @@ export type Database = {
         Row: {
           dia_semana: number
           disponible: boolean
+          etiqueta: string | null
           hora_inicio: number
           id: string
           updated_at: string
@@ -303,6 +304,7 @@ export type Database = {
         Insert: {
           dia_semana: number
           disponible?: boolean
+          etiqueta?: string | null
           hora_inicio: number
           id?: string
           updated_at?: string
@@ -311,6 +313,7 @@ export type Database = {
         Update: {
           dia_semana?: number
           disponible?: boolean
+          etiqueta?: string | null
           hora_inicio?: number
           id?: string
           updated_at?: string

@@ -9,16 +9,14 @@ const formatHora = (h: number) => `${h.toString().padStart(2, "0")}:00`;
 type ScheduleGridProps = {
   slots: HorarioSlot[];
   editable?: boolean;
-  onToggle?: (slot: HorarioSlot) => void;
-  pendingSlotId?: string | null;
+  onSlotClick?: (slot: HorarioSlot) => void;
   ocupadoLabel?: string;
 };
 
 export const ScheduleGrid = ({
   slots,
   editable = false,
-  onToggle,
-  pendingSlotId,
+  onSlotClick,
   ocupadoLabel = "Ocupado",
 }: ScheduleGridProps) => {
   const bySlot = new Map(slots.map((s) => [`${s.dia_semana}-${s.hora_inicio}`, s]));
@@ -43,26 +41,25 @@ export const ScheduleGrid = ({
               const diaSemana = i + 1;
               const slot = bySlot.get(`${diaSemana}-${hora}`);
               if (!slot) return <div key={i} />;
-              const isPending = pendingSlotId === slot.id;
-              const clickable = editable && !!onToggle;
+              const clickable = editable && !!onSlotClick;
+              const label = slot.disponible ? "" : (slot.etiqueta || ocupadoLabel);
               return (
                 <button
                   key={i}
                   type="button"
-                  disabled={!clickable || isPending}
-                  onClick={() => onToggle?.(slot)}
+                  disabled={!clickable}
+                  onClick={() => onSlotClick?.(slot)}
                   className={cn(
-                    "h-8 rounded-md text-[10px] font-medium flex items-center justify-center transition-colors",
+                    "h-8 rounded-md px-1 text-[10px] font-medium flex items-center justify-center text-center leading-tight truncate transition-colors",
                     slot.disponible
                       ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                      : "bg-slate-200 text-slate-500 border border-slate-300",
+                      : "bg-slate-200 text-slate-600 border border-slate-300",
                     clickable && "cursor-pointer hover:brightness-95",
-                    !clickable && "cursor-default",
-                    isPending && "opacity-50"
+                    !clickable && "cursor-default"
                   )}
-                  title={slot.disponible ? "Disponible" : ocupadoLabel}
+                  title={slot.disponible ? "Disponible" : label}
                 >
-                  {slot.disponible ? "" : "•"}
+                  {label}
                 </button>
               );
             })}

@@ -7,6 +7,7 @@ export type HorarioSlot = {
   dia_semana: number;
   hora_inicio: number;
   disponible: boolean;
+  etiqueta: string | null;
 };
 
 export const HORARIO_QUERY_KEY = ["mb-horario"] as const;
@@ -17,7 +18,7 @@ export const useHorarioQuery = () => {
     queryFn: async (): Promise<HorarioSlot[]> => {
       const { data, error } = await supabase
         .from("mb_disponibilidad_horario")
-        .select("id, dia_semana, hora_inicio, disponible")
+        .select("id, dia_semana, hora_inicio, disponible, etiqueta")
         .order("dia_semana", { ascending: true })
         .order("hora_inicio", { ascending: true });
       if (error) throw error;
@@ -26,23 +27,23 @@ export const useHorarioQuery = () => {
   });
 };
 
-export const useToggleHorarioSlot = () => {
+export const useUpdateHorarioSlot = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, disponible }: { id: string; disponible: boolean }) => {
+    mutationFn: async ({ id, disponible, etiqueta }: { id: string; disponible: boolean; etiqueta: string | null }) => {
       const { error } = await supabase
         .from("mb_disponibilidad_horario")
-        .update({ disponible, updated_at: new Date().toISOString(), updated_by: user?.id })
+        .update({ disponible, etiqueta, updated_at: new Date().toISOString(), updated_by: user?.id })
         .eq("id", id);
       if (error) throw error;
     },
-    onMutate: async ({ id, disponible }) => {
+    onMutate: async ({ id, disponible, etiqueta }) => {
       await queryClient.cancelQueries({ queryKey: HORARIO_QUERY_KEY });
       const previous = queryClient.getQueryData<HorarioSlot[]>(HORARIO_QUERY_KEY);
       queryClient.setQueryData<HorarioSlot[]>(HORARIO_QUERY_KEY, (old) =>
-        old?.map((slot) => (slot.id === id ? { ...slot, disponible } : slot))
+        old?.map((slot) => (slot.id === id ? { ...slot, disponible, etiqueta } : slot))
       );
       return { previous };
     },
