@@ -1,7 +1,7 @@
 import { Link, useLocation, Outlet } from "react-router-dom";
 import {
   LayoutDashboard, BookOpen,
-  Users, HelpCircle, LogOut, Shield, Menu, School
+  Users, HelpCircle, LogOut, Shield, Menu, School, Clock
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
@@ -42,6 +42,7 @@ const navigation = [
   { name: "Dashboard",  href: "/dashboard",           icon: LayoutDashboard, activeColor: ACCENT, activeBg: "rgba(76,111,255,0.08)" },
   { name: "Cursos",     href: "/dashboard/courses",   icon: BookOpen,        activeColor: "#10B981", activeBg: "rgba(16,185,129,0.08)" },
   { name: "Community",  href: "/dashboard/community", icon: Users,           activeColor: "#0EA5E9", activeBg: "rgba(14,165,233,0.08)" },
+  { name: "Horario",    href: "/dashboard/horario",   icon: Clock,           activeColor: "#F59E0B", activeBg: "rgba(245,158,11,0.08)" },
   { name: "Soporte",    href: "/dashboard/support",   icon: HelpCircle,      activeColor: "#A855F7", activeBg: "rgba(168,85,247,0.08)" },
 ];
 

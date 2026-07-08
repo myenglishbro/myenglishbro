@@ -291,6 +291,33 @@ export type Database = {
           },
         ]
       }
+      mb_disponibilidad_horario: {
+        Row: {
+          dia_semana: number
+          disponible: boolean
+          hora_inicio: number
+          id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          dia_semana: number
+          disponible?: boolean
+          hora_inicio: number
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          dia_semana?: number
+          disponible?: boolean
+          hora_inicio?: number
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       modulos: {
         Row: {
           curso_id: string

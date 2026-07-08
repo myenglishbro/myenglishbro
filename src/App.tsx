@@ -22,6 +22,7 @@ import Community from "./pages/dashboard/Community";
 import Profile from "./pages/dashboard/Profile";
 import Support from "./pages/dashboard/Support";
 import Settings from "./pages/dashboard/Settings";
+import Horario from "./pages/dashboard/Horario";
 import CourseDetail from "./pages/CourseDetail";
 import AdminCursos from "./pages/admin/AdminCursos";
 import AdminLecciones from "./pages/admin/AdminLecciones";
@@ -39,6 +40,7 @@ import TeacherSalon from "./pages/teacher/TeacherSalon";
 import TeacherEstudiantes from "./pages/teacher/TeacherEstudiantes";
 import TeacherActividades from "./pages/teacher/TeacherActividades";
 import TeacherCalificaciones from "./pages/teacher/TeacherCalificaciones";
+import TeacherHorario from "./pages/teacher/TeacherHorario";
 import SalonActividades from "./pages/salon/SalonActividades";
 import SalonDetail from "./pages/SalonDetail";
 import CoursePublicDetail from "./pages/CoursePublicDetail";
@@ -96,6 +98,7 @@ const App = () => (
               <Route path="profile" element={<Profile />} />
               <Route path="support" element={<Support />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="horario" element={<Horario />} />
             </Route>
 
             {/* Protected course detail page */}
@@ -145,6 +148,7 @@ const App = () => (
               <Route path="estudiantes/:salonId" element={<TeacherEstudiantes />} />
               <Route path="actividades/:salonId" element={<TeacherActividades />} />
               <Route path="calificaciones/:salonId" element={<TeacherCalificaciones />} />
+              <Route path="horario" element={<TeacherHorario />} />
             </Route>
 
             {/* Salon detail for students */}
