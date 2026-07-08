@@ -34,13 +34,13 @@ import AdminAnuncios from "./pages/admin/AdminAnuncios";
 import AdminWordSurvivor from "./pages/admin/AdminWordSurvivor";
 import AdminWordSurvivorTienda from "./pages/admin/AdminWordSurvivorTienda";
 import AdminWordSurvivorRecargas from "./pages/admin/AdminWordSurvivorRecargas";
+import AdminHorario from "./pages/admin/AdminHorario";
 import { TeacherLayout } from "./components/dashboard/TeacherLayout";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import TeacherSalon from "./pages/teacher/TeacherSalon";
 import TeacherEstudiantes from "./pages/teacher/TeacherEstudiantes";
 import TeacherActividades from "./pages/teacher/TeacherActividades";
 import TeacherCalificaciones from "./pages/teacher/TeacherCalificaciones";
-import TeacherHorario from "./pages/teacher/TeacherHorario";
 import SalonActividades from "./pages/salon/SalonActividades";
 import SalonDetail from "./pages/SalonDetail";
 import CoursePublicDetail from "./pages/CoursePublicDetail";
@@ -126,6 +126,7 @@ const App = () => (
               <Route path="cursos/:cursoId/lecciones" element={<AdminLecciones />} />
               <Route path="cursos/:cursoId/recursos" element={<AdminRecursos />} />
               <Route path="salones" element={<AdminSalones />} />
+              <Route path="horario" element={<AdminHorario />} />
               <Route path="programas" element={<AdminProgramas />} />
               <Route path="anuncios" element={<AdminAnuncios />} />
               <Route path="word-survivor" element={<AdminWordSurvivor />} />
@@ -148,7 +149,6 @@ const App = () => (
               <Route path="estudiantes/:salonId" element={<TeacherEstudiantes />} />
               <Route path="actividades/:salonId" element={<TeacherActividades />} />
               <Route path="calificaciones/:salonId" element={<TeacherCalificaciones />} />
-              <Route path="horario" element={<TeacherHorario />} />
             </Route>
 
             {/* Salon detail for students */}

@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Users, LogOut, School, Clock } from "lucide-react";
+import { Home, BookOpen, Users, LogOut, School } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import logoAce from "@/assets/logo-ace.png";
@@ -54,20 +54,6 @@ export const TeacherLayout = () => {
             >
               <BookOpen className={`mr-3 h-5 w-5 ${isActive("/teacher/salon") ? "text-primary" : "text-muted-foreground"}`} />
               Mis Salones
-            </Button>
-          </Link>
-
-          <Link to="/teacher/horario">
-            <Button
-              variant="ghost"
-              className={`w-full justify-start ${
-                isActive("/teacher/horario")
-                  ? "bg-primary/10 text-primary hover:bg-primary/15"
-                  : "text-foreground hover:bg-muted"
-              }`}
-            >
-              <Clock className={`mr-3 h-5 w-5 ${isActive("/teacher/horario") ? "text-primary" : "text-muted-foreground"}`} />
-              Mi Horario
             </Button>
           </Link>
 

@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Users, LogOut, Video, School, Megaphone, Swords, ShoppingBag, Zap, GraduationCap } from "lucide-react";
+import { Home, BookOpen, Users, LogOut, Video, School, Megaphone, Swords, ShoppingBag, Zap, GraduationCap, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
@@ -74,6 +74,21 @@ export const AdminLayout = () => {
               Salones
             </Button>
           </Link>
+          {isAdmin && (
+            <Link to="/admin/horario">
+              <Button
+                variant="ghost"
+                className={`w-full justify-start ${
+                  isActive("/admin/horario")
+                    ? "bg-primary/10 text-primary hover:bg-primary/15"
+                    : "text-foreground hover:bg-muted"
+                }`}
+              >
+                <Clock className={`mr-3 h-5 w-5 ${isActive("/admin/horario") ? "text-primary" : "text-muted-foreground"}`} />
+                Horario
+              </Button>
+            </Link>
+          )}
           <Link to="/admin/programas">
             <Button
               variant="ghost"

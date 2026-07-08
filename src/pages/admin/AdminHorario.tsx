@@ -11,7 +11,7 @@ import { useHorarioQuery, useUpdateHorarioSlot, type HorarioSlot } from "@/hooks
 
 const DIAS_LARGO = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
-const TeacherHorario = () => {
+const AdminHorario = () => {
   const { data: slots = [], isLoading } = useHorarioQuery();
   const updateSlot = useUpdateHorarioSlot();
 
@@ -40,10 +40,10 @@ const TeacherHorario = () => {
       <div className="mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Clock className="h-6 w-6 text-primary" />
-          Mi Horario
+          Horario
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Haz clic en un bloque para marcarlo como disponible u ocupado (puedes indicar con quién es la clase). Tus estudiantes verán este horario actualizado al instante.
+          Haz clic en un bloque para marcarlo como disponible u ocupado (puedes indicar con quién es la clase). Los estudiantes verán este horario actualizado al instante.
         </p>
       </div>
 
@@ -97,4 +97,4 @@ const TeacherHorario = () => {
   );
 };
 
-export default TeacherHorario;
+export default AdminHorario;
