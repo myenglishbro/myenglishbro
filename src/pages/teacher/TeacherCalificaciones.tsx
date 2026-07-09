@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,10 +14,12 @@ import { toast } from "sonner";
 import {
   ChevronLeft, Trophy, ClipboardCheck, User, Star,
   CheckCircle2, Clock, AlertCircle, Shuffle, AlignLeft, PenLine,
-  FileText, ClipboardList, ListChecks, HelpCircle,
+  FileText, ClipboardList, ListChecks, HelpCircle, SpellCheck, BookOpen, Headphones, Mic,
 } from "lucide-react";
 
-type ActivityType = "multiple_matching" | "fill_blanks" | "multiple_choice" | "writing" | "open_questions";
+type ActivityType =
+  | "multiple_matching" | "fill_blanks" | "multiple_choice" | "writing" | "open_questions"
+  | "use_of_english" | "reading" | "listening" | "speaking";
 
 type Actividad = {
   id: string;
@@ -53,6 +55,10 @@ const TIPO_ICONS: Record<ActivityType, React.ElementType> = {
   multiple_choice: ListChecks,
   writing: PenLine,
   open_questions: HelpCircle,
+  use_of_english: SpellCheck,
+  reading: BookOpen,
+  listening: Headphones,
+  speaking: Mic,
 };
 
 const TIPO_LABELS: Record<ActivityType, string> = {
@@ -61,7 +67,30 @@ const TIPO_LABELS: Record<ActivityType, string> = {
   multiple_choice: "Multiple Choice",
   writing: "Writing",
   open_questions: "Preguntas Abiertas",
+  use_of_english: "Use of English",
+  reading: "Reading",
+  listening: "Listening",
+  speaking: "Speaking",
 };
+
+function normalizeAnswer(s: string) {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function SpeakingPlayback({ path }: { path: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    supabase.storage.from("speaking-submissions").createSignedUrl(path, 3600).then(({ data }) => {
+      if (active && data?.signedUrl) setUrl(data.signedUrl);
+    });
+    return () => { active = false; };
+  }, [path]);
+
+  if (!url) return <p className="text-sm text-muted-foreground">Cargando audio...</p>;
+  return <audio controls src={url} className="w-full" />;
+}
 
 function renderRespuesta(actividad: Actividad, entrega: Entrega) {
   if (actividad.tipo === "writing") {
@@ -171,6 +200,95 @@ function renderRespuesta(actividad: Actividad, entrega: Entrega) {
             </div>
           </div>
         ))}
+      </div>
+    );
+  }
+  if (actividad.tipo === "use_of_english") {
+    const content = actividad.contenido as {
+      items?: Array<{ id: string; sentence: string; keyword: string; gapPrefix: string; gapSuffix: string; answer: string }>;
+    };
+    const answers = entrega.respuestas as { answers?: Record<string, string> };
+    const items = content.items || [];
+    const studentAnswers = answers.answers || {};
+    return (
+      <div className="space-y-3">
+        {items.map((item, i) => {
+          const studentAnswer = studentAnswers[item.id] || "";
+          const correct = normalizeAnswer(studentAnswer) === normalizeAnswer(item.answer);
+          return (
+            <div key={item.id} className={`p-2 rounded text-sm ${correct ? "bg-green-50" : "bg-red-50"}`}>
+              <p className="font-medium mb-1">{i + 1}. {item.sentence}</p>
+              <p className="text-xs text-muted-foreground mb-1">
+                Palabra clave: <span className="font-mono font-bold">{item.keyword}</span>
+              </p>
+              <div className="flex items-center gap-2">
+                <span className={`flex-1 ${correct ? "text-green-700" : "text-red-700"}`}>
+                  {item.gapPrefix} {studentAnswer || "(Sin respuesta)"} {item.gapSuffix}
+                </span>
+                {correct
+                  ? <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                  : <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />}
+              </div>
+              {!correct && <p className="text-xs text-muted-foreground mt-0.5">Correcta: {item.answer}</p>}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+  if (actividad.tipo === "reading" || actividad.tipo === "listening") {
+    const content = actividad.contenido as {
+      passage?: string;
+      audio_url?: string;
+      questions?: Array<{ id: string; question: string; options: string[]; correctIndex: number }>;
+    };
+    const answers = entrega.respuestas as { answers?: Record<string, number> };
+    const questions = content.questions || [];
+    const studentAnswers = answers.answers || {};
+    return (
+      <div className="space-y-3">
+        {actividad.tipo === "reading" && content.passage && (
+          <div className="bg-cyan-50 border border-cyan-200 rounded-md p-3 text-sm max-h-40 overflow-y-auto whitespace-pre-wrap">
+            {content.passage}
+          </div>
+        )}
+        {actividad.tipo === "listening" && content.audio_url && (
+          <audio controls src={content.audio_url} className="w-full" />
+        )}
+        {questions.map((q, i) => {
+          const selectedIndex = studentAnswers[q.id];
+          const correct = selectedIndex === q.correctIndex;
+          return (
+            <div key={q.id} className={`p-2 rounded text-sm ${correct ? "bg-green-50" : "bg-red-50"}`}>
+              <p className="font-medium mb-1 whitespace-pre-wrap">{i + 1}. {q.question}</p>
+              <div className="flex items-center gap-2">
+                <span className={`flex-1 ${correct ? "text-green-700" : "text-red-700"}`}>
+                  {selectedIndex !== undefined ? q.options[selectedIndex] : "(Sin respuesta)"}
+                </span>
+                {correct
+                  ? <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                  : <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />}
+              </div>
+              {!correct && <p className="text-xs text-muted-foreground mt-0.5">Correcta: {q.options[q.correctIndex]}</p>}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+  if (actividad.tipo === "speaking") {
+    const content = actividad.contenido as { prompt?: string };
+    const respuesta = entrega.respuestas as { audio_path?: string };
+    return (
+      <div className="space-y-2">
+        {content.prompt && (
+          <div className="bg-pink-50 border border-pink-200 rounded-md p-3 text-sm whitespace-pre-wrap">
+            {content.prompt}
+          </div>
+        )}
+        {respuesta.audio_path
+          ? <SpeakingPlayback path={respuesta.audio_path} />
+          : <p className="text-sm text-muted-foreground">(Sin grabación)</p>}
       </div>
     );
   }
@@ -292,7 +410,7 @@ const TeacherCalificaciones = () => {
     };
   }).sort((a, b) => b.total - a.total);
 
-  const pendingCount = entregas.filter((e) => e.estado === "entregado" && actividades.find((a) => a.id === e.actividad_id && (a.tipo === "writing" || a.tipo === "open_questions"))).length;
+  const pendingCount = entregas.filter((e) => e.estado === "entregado" && actividades.find((a) => a.id === e.actividad_id && (a.tipo === "writing" || a.tipo === "open_questions" || a.tipo === "speaking"))).length;
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -490,7 +608,7 @@ const TeacherCalificaciones = () => {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {selectedActividad?.tipo === "writing" || selectedActividad?.tipo === "open_questions" ? "Corregir respuesta" : "Ver entrega"} —{" "}
+              {selectedActividad?.tipo === "writing" || selectedActividad?.tipo === "open_questions" || selectedActividad?.tipo === "speaking" ? "Corregir respuesta" : "Ver entrega"} —{" "}
               {selectedEntrega?.usuario?.nombre || "Estudiante"}
             </DialogTitle>
           </DialogHeader>

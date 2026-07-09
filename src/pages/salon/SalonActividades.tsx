@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,20 +14,27 @@ import { toast } from "sonner";
 import {
   ChevronLeft, Trophy, ClipboardList, Star, User,
   CheckCircle2, Clock, Shuffle, AlignLeft, PenLine, Lock,
-  ListChecks, HelpCircle,
+  ListChecks, HelpCircle, SpellCheck, BookOpen, Headphones, Mic,
 } from "lucide-react";
 
-type ActivityType = "multiple_matching" | "fill_blanks" | "multiple_choice" | "writing" | "open_questions";
+type ActivityType =
+  | "multiple_matching" | "fill_blanks" | "multiple_choice" | "writing" | "open_questions"
+  | "use_of_english" | "reading" | "listening" | "speaking";
 
 type MatchingPair = { id: string; left: string; right: string };
 type BlankItem = { id: string; answer: string; options: string };
 type McQuestion = { id: string; question: string; options: string[]; correctIndex: number };
 type OpenQuestionItem = { id: string; question: string };
+type KeyWordItem = { id: string; sentence: string; keyword: string; gapPrefix: string; gapSuffix: string; answer: string };
 type MatchingContent = { pairs: MatchingPair[] };
 type FillBlanksContent = { template: string; blanks: BlankItem[] };
 type MultipleChoiceContent = { questions: McQuestion[] };
 type WritingContent = { prompt: string; min_words: number; max_words: number };
 type OpenQuestionsContent = { questions: OpenQuestionItem[] };
+type UseOfEnglishContent = { items: KeyWordItem[] };
+type ReadingContent = { passage: string; questions: McQuestion[] };
+type ListeningContent = { audio_url: string; questions: McQuestion[] };
+type SpeakingContent = { prompt: string; preparation_seconds: number; max_recording_seconds: number };
 
 type Actividad = {
   id: string;
@@ -35,7 +42,9 @@ type Actividad = {
   titulo: string;
   instrucciones: string | null;
   tipo: ActivityType;
-  contenido: MatchingContent | FillBlanksContent | MultipleChoiceContent | WritingContent | OpenQuestionsContent;
+  contenido:
+    | MatchingContent | FillBlanksContent | MultipleChoiceContent | WritingContent | OpenQuestionsContent
+    | UseOfEnglishContent | ReadingContent | ListeningContent | SpeakingContent;
   puntaje_maximo: number;
   activo: boolean;
   order_index: number;
@@ -63,6 +72,10 @@ const TIPO_ICONS: Record<ActivityType, React.ElementType> = {
   multiple_choice: ListChecks,
   writing: PenLine,
   open_questions: HelpCircle,
+  use_of_english: SpellCheck,
+  reading: BookOpen,
+  listening: Headphones,
+  speaking: Mic,
 };
 
 const TIPO_LABELS: Record<ActivityType, string> = {
@@ -71,6 +84,10 @@ const TIPO_LABELS: Record<ActivityType, string> = {
   multiple_choice: "Multiple Choice",
   writing: "Writing",
   open_questions: "Preguntas Abiertas",
+  use_of_english: "Use of English",
+  reading: "Reading",
+  listening: "Listening",
+  speaking: "Speaking",
 };
 
 const TIPO_COLORS: Record<ActivityType, string> = {
@@ -79,10 +96,18 @@ const TIPO_COLORS: Record<ActivityType, string> = {
   multiple_choice: "bg-purple-100 text-purple-700",
   writing: "bg-green-100 text-green-700",
   open_questions: "bg-rose-100 text-rose-700",
+  use_of_english: "bg-indigo-100 text-indigo-700",
+  reading: "bg-cyan-100 text-cyan-700",
+  listening: "bg-orange-100 text-orange-700",
+  speaking: "bg-pink-100 text-pink-700",
 };
 
 function countWords(text: string) {
   return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function normalizeAnswer(s: string) {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 function scoreMatching(pairs: MatchingPair[], matches: Record<string, string>, maxScore: number): number {
@@ -103,6 +128,12 @@ function scoreMultipleChoice(questions: McQuestion[], answers: Record<string, nu
   if (!questions.length) return 0;
   const correct = questions.filter((q) => answers[q.id] === q.correctIndex).length;
   return Math.round((correct / questions.length) * maxScore);
+}
+
+function scoreUseOfEnglish(items: KeyWordItem[], answers: Record<string, string>, maxScore: number): number {
+  if (!items.length) return 0;
+  const correct = items.filter((it) => normalizeAnswer(answers[it.id] || "") === normalizeAnswer(it.answer)).length;
+  return Math.round((correct / items.length) * maxScore);
 }
 
 // --- Activity components ---
@@ -394,6 +425,315 @@ function WritingActivityComp({
   );
 }
 
+function UseOfEnglishActivity({
+  content,
+  existing,
+  onChange,
+  readonly,
+}: {
+  content: UseOfEnglishContent;
+  existing?: Record<string, string>;
+  onChange?: (answers: Record<string, string>) => void;
+  readonly?: boolean;
+}) {
+  const [answers, setAnswers] = useState<Record<string, string>>(existing || {});
+
+  function handleAnswer(id: string, value: string) {
+    if (readonly) return;
+    const updated = { ...answers, [id]: value };
+    setAnswers(updated);
+    onChange?.(updated);
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Completa la segunda oración usando la palabra clave, sin cambiarla, para que signifique lo mismo que la primera.
+      </p>
+      {content.items.map((item, i) => {
+        const isCorrect = readonly && normalizeAnswer(answers[item.id] || "") === normalizeAnswer(item.answer);
+        return (
+          <div key={item.id} className="space-y-1.5 border-b pb-3 last:border-b-0">
+            <p className="text-sm font-medium">{i + 1}. {item.sentence}</p>
+            <p className="text-xs text-muted-foreground">
+              Palabra clave: <span className="font-mono font-bold text-primary">{item.keyword}</span>
+            </p>
+            <div className="flex flex-wrap items-center gap-1 text-sm">
+              <span>{item.gapPrefix}</span>
+              {readonly ? (
+                <span className={`mx-1 font-bold ${isCorrect ? "text-green-600" : "text-red-600"}`}>
+                  {answers[item.id] || "(Sin respuesta)"}
+                </span>
+              ) : (
+                <Input
+                  value={answers[item.id] || ""}
+                  onChange={(e) => handleAnswer(item.id, e.target.value)}
+                  className="inline-block w-48 h-8 mx-1"
+                  placeholder="..."
+                />
+              )}
+              <span>{item.gapSuffix}</span>
+              {readonly && (
+                isCorrect
+                  ? <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                  : <span className="text-xs text-muted-foreground ml-1">(Correcta: {item.answer})</span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ReadingActivity({
+  content,
+  existing,
+  onChange,
+  readonly,
+}: {
+  content: ReadingContent;
+  existing?: Record<string, number>;
+  onChange?: (answers: Record<string, number>) => void;
+  readonly?: boolean;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4 max-h-64 overflow-y-auto">
+        <p className="text-sm whitespace-pre-wrap leading-relaxed">{content.passage}</p>
+      </div>
+      <MultipleChoiceActivity
+        content={{ questions: content.questions }}
+        existing={existing}
+        onChange={onChange}
+        readonly={readonly}
+      />
+    </div>
+  );
+}
+
+function ListeningActivity({
+  content,
+  existing,
+  onChange,
+  readonly,
+}: {
+  content: ListeningContent;
+  existing?: Record<string, number>;
+  onChange?: (answers: Record<string, number>) => void;
+  readonly?: boolean;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+        <audio controls src={content.audio_url} className="w-full" />
+      </div>
+      <MultipleChoiceActivity
+        content={{ questions: content.questions }}
+        existing={existing}
+        onChange={onChange}
+        readonly={readonly}
+      />
+    </div>
+  );
+}
+
+function SpeakingPlayback({ path }: { path: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    supabase.storage.from("speaking-submissions").createSignedUrl(path, 3600).then(({ data }) => {
+      if (active && data?.signedUrl) setUrl(data.signedUrl);
+    });
+    return () => { active = false; };
+  }, [path]);
+
+  if (!url) return <p className="text-sm text-muted-foreground">Cargando audio...</p>;
+  return <audio controls src={url} className="w-full" />;
+}
+
+function SpeakingActivity({
+  content,
+  existingPath,
+  onUploaded,
+  readonly,
+  salonId,
+  actividadId,
+  userId,
+}: {
+  content: SpeakingContent;
+  existingPath?: string;
+  onUploaded?: (path: string) => void;
+  readonly?: boolean;
+  salonId: string;
+  actividadId: string;
+  userId: string;
+}) {
+  const [phase, setPhase] = useState<"idle" | "preparing" | "recording" | "recorded" | "uploading">("idle");
+  const [countdown, setCountdown] = useState(0);
+  const [recordSeconds, setRecordSeconds] = useState(0);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const blobRef = useRef<Blob | null>(null);
+
+  useEffect(() => {
+    return () => {
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
+
+  useEffect(() => {
+    if (phase !== "preparing") return;
+    if (countdown <= 0) {
+      startRecording();
+      return;
+    }
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, countdown]);
+
+  useEffect(() => {
+    if (phase !== "recording") return;
+    if (recordSeconds >= content.max_recording_seconds) {
+      stopRecording();
+      return;
+    }
+    const t = setTimeout(() => setRecordSeconds((s) => s + 1), 1000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, recordSeconds]);
+
+  async function beginPractice() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+    } catch {
+      toast.error("No se pudo acceder al micrófono. Revisa los permisos del navegador.");
+      return;
+    }
+    if (content.preparation_seconds > 0) {
+      setCountdown(content.preparation_seconds);
+      setPhase("preparing");
+    } else {
+      startRecording();
+    }
+  }
+
+  function startRecording() {
+    const stream = streamRef.current;
+    if (!stream) return;
+    chunksRef.current = [];
+    const recorder = new MediaRecorder(stream);
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunksRef.current.push(e.data);
+    };
+    recorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+      blobRef.current = blob;
+      setPreviewUrl(URL.createObjectURL(blob));
+      setPhase("recorded");
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+    };
+    mediaRecorderRef.current = recorder;
+    recorder.start();
+    setRecordSeconds(0);
+    setPhase("recording");
+  }
+
+  function stopRecording() {
+    mediaRecorderRef.current?.stop();
+  }
+
+  function discardRecording() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    blobRef.current = null;
+    setPhase("idle");
+  }
+
+  async function uploadRecording() {
+    if (!blobRef.current) return;
+    setPhase("uploading");
+    const path = `${salonId}/${userId}/${actividadId}-${Date.now()}.webm`;
+    const { error } = await supabase.storage
+      .from("speaking-submissions")
+      .upload(path, blobRef.current, { contentType: "audio/webm" });
+    if (error) {
+      toast.error("Error al subir la grabación");
+      setPhase("recorded");
+      return;
+    }
+    toast.success("Grabación lista. No olvides entregar la actividad.");
+    onUploaded?.(path);
+  }
+
+  if (readonly) {
+    return (
+      <div className="space-y-3">
+        <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
+          <p className="text-sm font-medium text-pink-800 whitespace-pre-wrap">{content.prompt}</p>
+        </div>
+        {existingPath ? <SpeakingPlayback path={existingPath} /> : (
+          <p className="text-sm text-muted-foreground">(Sin grabación)</p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
+        <p className="text-sm font-medium text-pink-800 whitespace-pre-wrap">{content.prompt}</p>
+        <p className="text-xs text-pink-600 mt-1">
+          Preparación: {content.preparation_seconds}s · Grabación máxima: {content.max_recording_seconds}s
+        </p>
+      </div>
+
+      {phase === "idle" && (
+        <Button onClick={beginPractice} className="gap-2">
+          <Mic className="h-4 w-4" /> Empezar
+        </Button>
+      )}
+
+      {phase === "preparing" && (
+        <div className="text-center py-6">
+          <p className="text-sm text-muted-foreground mb-2">Prepárate para hablar...</p>
+          <p className="text-4xl font-bold text-primary">{countdown}</p>
+        </div>
+      )}
+
+      {phase === "recording" && (
+        <div className="text-center py-6">
+          <div className="flex items-center justify-center gap-2 text-red-600 mb-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-red-600 animate-pulse" />
+            <span className="text-sm font-medium">Grabando...</span>
+          </div>
+          <p className="text-3xl font-bold">{recordSeconds}s / {content.max_recording_seconds}s</p>
+          <Button variant="outline" className="mt-3" onClick={stopRecording}>Detener</Button>
+        </div>
+      )}
+
+      {(phase === "recorded" || phase === "uploading") && previewUrl && (
+        <div className="space-y-2">
+          <audio controls src={previewUrl} className="w-full" />
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={discardRecording} disabled={phase === "uploading"}>
+              Regrabar
+            </Button>
+            <Button onClick={uploadRecording} disabled={phase === "uploading"}>
+              {phase === "uploading" ? "Subiendo..." : "Usar esta grabación"}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // --- Main component ---
 
 const SalonActividades = () => {
@@ -407,6 +747,10 @@ const SalonActividades = () => {
   const [mcAnswers, setMcAnswers] = useState<Record<string, number>>({});
   const [writingText, setWritingText] = useState("");
   const [openAnswers, setOpenAnswers] = useState<Record<string, string>>({});
+  const [uoeAnswers, setUoeAnswers] = useState<Record<string, string>>({});
+  const [readingAnswers, setReadingAnswers] = useState<Record<string, number>>({});
+  const [listeningAnswers, setListeningAnswers] = useState<Record<string, number>>({});
+  const [speakingAudioPath, setSpeakingAudioPath] = useState<string | null>(null);
   const [viewingEntrega, setViewingEntrega] = useState<Entrega | null>(null);
 
   const { data: salon } = useQuery({
@@ -429,7 +773,7 @@ const SalonActividades = () => {
         .eq("activo", true)
         .order("order_index", { ascending: true });
       if (error) throw error;
-      return data as Actividad[];
+      return data as unknown as Actividad[];
     },
     enabled: !!salonId,
   });
@@ -522,6 +866,10 @@ const SalonActividades = () => {
       setMcAnswers({});
       setWritingText("");
       setOpenAnswers({});
+      setUoeAnswers({});
+      setReadingAnswers({});
+      setListeningAnswers({});
+      setSpeakingAudioPath(null);
       setActiveActivity(actividad);
       setViewingEntrega(null);
     }
@@ -591,6 +939,55 @@ const SalonActividades = () => {
       submitMutation.mutate({
         actividadId: activeActivity.id,
         respuestas: { answers: openAnswers },
+        autoGraded: false,
+      });
+    } else if (activeActivity.tipo === "use_of_english") {
+      const content = activeActivity.contenido as UseOfEnglishContent;
+      if (content.items.some((it) => !uoeAnswers[it.id]?.trim())) {
+        toast.error("Completa todos los espacios antes de enviar");
+        return;
+      }
+      const score = scoreUseOfEnglish(content.items, uoeAnswers, activeActivity.puntaje_maximo);
+      submitMutation.mutate({
+        actividadId: activeActivity.id,
+        respuestas: { answers: uoeAnswers },
+        puntajeObtenido: score,
+        autoGraded: true,
+      });
+    } else if (activeActivity.tipo === "reading") {
+      const content = activeActivity.contenido as ReadingContent;
+      if (content.questions.some((q) => readingAnswers[q.id] === undefined)) {
+        toast.error("Responde todas las preguntas antes de enviar");
+        return;
+      }
+      const score = scoreMultipleChoice(content.questions, readingAnswers, activeActivity.puntaje_maximo);
+      submitMutation.mutate({
+        actividadId: activeActivity.id,
+        respuestas: { answers: readingAnswers },
+        puntajeObtenido: score,
+        autoGraded: true,
+      });
+    } else if (activeActivity.tipo === "listening") {
+      const content = activeActivity.contenido as ListeningContent;
+      if (content.questions.some((q) => listeningAnswers[q.id] === undefined)) {
+        toast.error("Responde todas las preguntas antes de enviar");
+        return;
+      }
+      const score = scoreMultipleChoice(content.questions, listeningAnswers, activeActivity.puntaje_maximo);
+      submitMutation.mutate({
+        actividadId: activeActivity.id,
+        respuestas: { answers: listeningAnswers },
+        puntajeObtenido: score,
+        autoGraded: true,
+      });
+    } else if (activeActivity.tipo === "speaking") {
+      if (!speakingAudioPath) {
+        toast.error("Graba tu respuesta antes de enviar");
+        return;
+      }
+      submitMutation.mutate({
+        actividadId: activeActivity.id,
+        respuestas: { audio_path: speakingAudioPath },
         autoGraded: false,
       });
     }
@@ -820,6 +1217,37 @@ const SalonActividades = () => {
                         readonly
                       />
                     )}
+                    {activeActivity.tipo === "use_of_english" && (
+                      <UseOfEnglishActivity
+                        content={activeActivity.contenido as UseOfEnglishContent}
+                        existing={(viewingEntrega.respuestas as { answers?: Record<string, string> }).answers}
+                        readonly
+                      />
+                    )}
+                    {activeActivity.tipo === "reading" && (
+                      <ReadingActivity
+                        content={activeActivity.contenido as ReadingContent}
+                        existing={(viewingEntrega.respuestas as { answers?: Record<string, number> }).answers}
+                        readonly
+                      />
+                    )}
+                    {activeActivity.tipo === "listening" && (
+                      <ListeningActivity
+                        content={activeActivity.contenido as ListeningContent}
+                        existing={(viewingEntrega.respuestas as { answers?: Record<string, number> }).answers}
+                        readonly
+                      />
+                    )}
+                    {activeActivity.tipo === "speaking" && (
+                      <SpeakingActivity
+                        content={activeActivity.contenido as SpeakingContent}
+                        existingPath={(viewingEntrega.respuestas as { audio_path?: string }).audio_path}
+                        readonly
+                        salonId={salonId!}
+                        actividadId={activeActivity.id}
+                        userId={user!.id}
+                      />
+                    )}
 
                     {/* Score / feedback section */}
                     <div className="border-t pt-4">
@@ -880,6 +1308,33 @@ const SalonActividades = () => {
                       <OpenQuestionsActivity
                         content={activeActivity.contenido as OpenQuestionsContent}
                         onChange={setOpenAnswers}
+                      />
+                    )}
+                    {activeActivity.tipo === "use_of_english" && (
+                      <UseOfEnglishActivity
+                        content={activeActivity.contenido as UseOfEnglishContent}
+                        onChange={setUoeAnswers}
+                      />
+                    )}
+                    {activeActivity.tipo === "reading" && (
+                      <ReadingActivity
+                        content={activeActivity.contenido as ReadingContent}
+                        onChange={setReadingAnswers}
+                      />
+                    )}
+                    {activeActivity.tipo === "listening" && (
+                      <ListeningActivity
+                        content={activeActivity.contenido as ListeningContent}
+                        onChange={setListeningAnswers}
+                      />
+                    )}
+                    {activeActivity.tipo === "speaking" && (
+                      <SpeakingActivity
+                        content={activeActivity.contenido as SpeakingContent}
+                        onUploaded={setSpeakingAudioPath}
+                        salonId={salonId!}
+                        actividadId={activeActivity.id}
+                        userId={user!.id}
                       />
                     )}
                     <div className="flex justify-end gap-2 border-t pt-4">

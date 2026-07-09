@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -187,46 +187,46 @@ export type Database = {
       }
       lecciones_publicas: {
         Row: {
-          id: string
-          titulo: string
-          slug: string
-          descripcion: string | null
+          categoria: string
           contenido_html: string | null
-          youtube_url: string | null
+          created_at: string
+          descripcion: string | null
+          id: string
           imagen_url: string | null
           nivel: string
-          categoria: string
           publicado: boolean
-          created_at: string
+          slug: string
+          titulo: string
           updated_at: string
+          youtube_url: string | null
         }
         Insert: {
-          id?: string
-          titulo: string
-          slug: string
-          descripcion?: string | null
+          categoria?: string
           contenido_html?: string | null
-          youtube_url?: string | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
           imagen_url?: string | null
           nivel?: string
-          categoria?: string
           publicado?: boolean
-          created_at?: string
+          slug: string
+          titulo: string
           updated_at?: string
+          youtube_url?: string | null
         }
         Update: {
-          id?: string
-          titulo?: string
-          slug?: string
-          descripcion?: string | null
+          categoria?: string
           contenido_html?: string | null
-          youtube_url?: string | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
           imagen_url?: string | null
           nivel?: string
-          categoria?: string
           publicado?: boolean
-          created_at?: string
+          slug?: string
+          titulo?: string
           updated_at?: string
+          youtube_url?: string | null
         }
         Relationships: []
       }
@@ -1383,6 +1383,10 @@ export type Database = {
         | "writing"
         | "multiple_choice"
         | "open_questions"
+        | "use_of_english"
+        | "reading"
+        | "listening"
+        | "speaking"
       app_role: "admin" | "student" | "content_admin" | "teacher"
       entrega_estado: "entregado" | "calificado"
     }
@@ -1518,6 +1522,10 @@ export const Constants = {
         "writing",
         "multiple_choice",
         "open_questions",
+        "use_of_english",
+        "reading",
+        "listening",
+        "speaking",
       ],
       app_role: ["admin", "student", "content_admin", "teacher"],
       entrega_estado: ["entregado", "calificado"],

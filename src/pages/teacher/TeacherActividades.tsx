@@ -15,21 +15,30 @@ import {
   Plus, Edit, Trash2, ChevronLeft, ClipboardList,
   Shuffle, PenLine, AlignLeft, X, GripVertical,
   FileText, ClipboardCheck, ListChecks, HelpCircle,
-  Sparkles, Copy, ClipboardPaste,
+  Sparkles, Copy, ClipboardPaste, SpellCheck, BookOpen, Headphones, Mic,
 } from "lucide-react";
 
-type ActivityType = "multiple_matching" | "fill_blanks" | "multiple_choice" | "writing" | "open_questions";
+type ActivityType =
+  | "multiple_matching" | "fill_blanks" | "multiple_choice" | "writing" | "open_questions"
+  | "use_of_english" | "reading" | "listening" | "speaking";
 
 type MatchingPair = { id: string; left: string; right: string };
 type BlankItem = { id: string; answer: string; options: string };
 type McQuestion = { id: string; question: string; options: string[]; correctIndex: number };
 type OpenQuestionItem = { id: string; question: string };
+type KeyWordItem = { id: string; sentence: string; keyword: string; gapPrefix: string; gapSuffix: string; answer: string };
 type MatchingContent = { pairs: MatchingPair[] };
 type FillBlanksContent = { template: string; blanks: BlankItem[] };
 type MultipleChoiceContent = { questions: McQuestion[] };
 type WritingContent = { prompt: string; min_words: number; max_words: number };
 type OpenQuestionsContent = { questions: OpenQuestionItem[] };
-type ActivityContent = MatchingContent | FillBlanksContent | MultipleChoiceContent | WritingContent | OpenQuestionsContent;
+type UseOfEnglishContent = { items: KeyWordItem[] };
+type ReadingContent = { passage: string; questions: McQuestion[] };
+type ListeningContent = { audio_url: string; questions: McQuestion[] };
+type SpeakingContent = { prompt: string; preparation_seconds: number; max_recording_seconds: number };
+type ActivityContent =
+  | MatchingContent | FillBlanksContent | MultipleChoiceContent | WritingContent | OpenQuestionsContent
+  | UseOfEnglishContent | ReadingContent | ListeningContent | SpeakingContent;
 
 type Actividad = {
   id: string;
@@ -49,6 +58,10 @@ const TIPO_LABELS: Record<ActivityType, string> = {
   multiple_choice: "Multiple Choice",
   writing: "Writing",
   open_questions: "Preguntas Abiertas",
+  use_of_english: "Use of English",
+  reading: "Reading",
+  listening: "Listening",
+  speaking: "Speaking",
 };
 
 const TIPO_ICONS: Record<ActivityType, React.ElementType> = {
@@ -57,6 +70,10 @@ const TIPO_ICONS: Record<ActivityType, React.ElementType> = {
   multiple_choice: ListChecks,
   writing: PenLine,
   open_questions: HelpCircle,
+  use_of_english: SpellCheck,
+  reading: BookOpen,
+  listening: Headphones,
+  speaking: Mic,
 };
 
 const TIPO_COLORS: Record<ActivityType, string> = {
@@ -65,6 +82,10 @@ const TIPO_COLORS: Record<ActivityType, string> = {
   multiple_choice: "bg-purple-100 text-purple-700",
   writing: "bg-green-100 text-green-700",
   open_questions: "bg-rose-100 text-rose-700",
+  use_of_english: "bg-indigo-100 text-indigo-700",
+  reading: "bg-cyan-100 text-cyan-700",
+  listening: "bg-orange-100 text-orange-700",
+  speaking: "bg-pink-100 text-pink-700",
 };
 
 const emptyForm = {
@@ -85,6 +106,16 @@ function getDefaultContent(tipo: ActivityType): ActivityContent {
     return { questions: [{ id: Date.now().toString(), question: "", options: ["", ""], correctIndex: 0 }] };
   }
   if (tipo === "open_questions") return { questions: [{ id: Date.now().toString(), question: "" }] };
+  if (tipo === "use_of_english") {
+    return { items: [{ id: Date.now().toString(), sentence: "", keyword: "", gapPrefix: "", gapSuffix: "", answer: "" }] };
+  }
+  if (tipo === "reading") {
+    return { passage: "", questions: [{ id: Date.now().toString(), question: "", options: ["", ""], correctIndex: 0 }] };
+  }
+  if (tipo === "listening") {
+    return { audio_url: "", questions: [{ id: Date.now().toString(), question: "", options: ["", ""], correctIndex: 0 }] };
+  }
+  if (tipo === "speaking") return { prompt: "", preparation_seconds: 30, max_recording_seconds: 90 };
   return { prompt: "", min_words: 50, max_words: 300 };
 }
 
@@ -173,6 +204,77 @@ Reglas:
 Reglas:
 - Cada pregunta debe ser abierta (no de opción múltiple) y fomentar respuestas en inglés.
 - No repitas preguntas.`,
+  use_of_english: `{
+  "titulo": "string",
+  "instrucciones": "string",
+  "puntaje_maximo": number,
+  "contenido": {
+    "items": [
+      {
+        "id": "1",
+        "sentence": "oración original completa",
+        "keyword": "PALABRA CLAVE (mayúsculas, no debe cambiar de forma)",
+        "gapPrefix": "texto de la segunda oración antes del espacio",
+        "gapSuffix": "texto de la segunda oración después del espacio",
+        "answer": "palabras que van en el espacio (entre 2 y 6 palabras, incluye la keyword)"
+      }
+    ]
+  }
+}
+
+Reglas:
+- Es el formato "Key Word Transformation" de Cambridge (B2 First / C1 Advanced): se da una oración, una palabra clave que NO debe cambiar de forma, y el estudiante completa una segunda oración con el mismo significado usando esa palabra.
+- "gapPrefix" + [ESPACIO] + "gapSuffix" debe formar una oración completa y natural al combinarse con "answer".
+- "answer" debe tener entre 2 y 6 palabras e incluir obligatoriamente la "keyword".
+- No repitas oraciones.`,
+  reading: `{
+  "titulo": "string",
+  "instrucciones": "string",
+  "puntaje_maximo": number,
+  "contenido": {
+    "passage": "texto de lectura completo (varios párrafos)",
+    "questions": [
+      { "id": "1", "question": "string", "options": ["opción A", "opción B", "opción C"], "correctIndex": 0 }
+    ]
+  }
+}
+
+Reglas:
+- "passage" debe ser un texto de lectura coherente y de longitud adecuada al nivel indicado.
+- Las preguntas deben evaluar comprensión del texto (idea principal, detalles, inferencia, vocabulario en contexto).
+- "correctIndex" es el índice (empezando en 0) de la opción correcta.
+- Cada pregunta debe tener entre 2 y 5 opciones. No repitas preguntas.`,
+  listening: `{
+  "titulo": "string",
+  "instrucciones": "string",
+  "puntaje_maximo": number,
+  "contenido": {
+    "audio_url": "",
+    "questions": [
+      { "id": "1", "question": "string", "options": ["opción A", "opción B", "opción C"], "correctIndex": 0 }
+    ]
+  }
+}
+
+Reglas:
+- Deja "audio_url" vacío: tú lo completarás manualmente con el link del audio antes de guardar.
+- Las preguntas deben evaluar comprensión auditiva sobre un audio del tema indicado.
+- "correctIndex" es el índice (empezando en 0) de la opción correcta.
+- Cada pregunta debe tener entre 2 y 5 opciones. No repitas preguntas.`,
+  speaking: `{
+  "titulo": "string",
+  "instrucciones": "string",
+  "puntaje_maximo": number,
+  "contenido": {
+    "prompt": "consigna o tema para que el estudiante hable",
+    "preparation_seconds": number,
+    "max_recording_seconds": number
+  }
+}
+
+Reglas:
+- "prompt" debe motivar al estudiante a hablar en inglés de forma extendida (describir, comparar, opinar, narrar).
+- Ajusta "preparation_seconds" (tiempo para pensar antes de grabar) y "max_recording_seconds" según el nivel (ej. principiante 60-90s, intermedio 90-120s, avanzado 120-180s).`,
 };
 
 function getPromptForTipo(tipo: ActivityType): string {
@@ -230,6 +332,54 @@ function normalizeContent(tipo: ActivityType, raw: any): ActivityContent { // es
       })),
     };
   }
+  if (tipo === "use_of_english") {
+    const items = Array.isArray(raw?.items) ? raw.items : [];
+    return {
+      items: items.map((it: any, i: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+        id: it?.id ? String(it.id) : String(i + 1),
+        sentence: String(it?.sentence ?? ""),
+        keyword: String(it?.keyword ?? ""),
+        gapPrefix: String(it?.gapPrefix ?? ""),
+        gapSuffix: String(it?.gapSuffix ?? ""),
+        answer: String(it?.answer ?? ""),
+      })),
+    };
+  }
+  if (tipo === "reading") {
+    const questions = Array.isArray(raw?.questions) ? raw.questions : [];
+    return {
+      passage: String(raw?.passage ?? ""),
+      questions: questions.map((q: any, i: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+        id: q?.id ? String(q.id) : String(i + 1),
+        question: String(q?.question ?? ""),
+        options: Array.isArray(q?.options) && q.options.length >= 2
+          ? q.options.map((o: any) => String(o)) // eslint-disable-line @typescript-eslint/no-explicit-any
+          : ["", ""],
+        correctIndex: typeof q?.correctIndex === "number" ? q.correctIndex : 0,
+      })),
+    };
+  }
+  if (tipo === "listening") {
+    const questions = Array.isArray(raw?.questions) ? raw.questions : [];
+    return {
+      audio_url: String(raw?.audio_url ?? ""),
+      questions: questions.map((q: any, i: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+        id: q?.id ? String(q.id) : String(i + 1),
+        question: String(q?.question ?? ""),
+        options: Array.isArray(q?.options) && q.options.length >= 2
+          ? q.options.map((o: any) => String(o)) // eslint-disable-line @typescript-eslint/no-explicit-any
+          : ["", ""],
+        correctIndex: typeof q?.correctIndex === "number" ? q.correctIndex : 0,
+      })),
+    };
+  }
+  if (tipo === "speaking") {
+    return {
+      prompt: String(raw?.prompt ?? ""),
+      preparation_seconds: typeof raw?.preparation_seconds === "number" ? raw.preparation_seconds : 30,
+      max_recording_seconds: typeof raw?.max_recording_seconds === "number" ? raw.max_recording_seconds : 90,
+    };
+  }
   return {
     prompt: String(raw?.prompt ?? ""),
     min_words: typeof raw?.min_words === "number" ? raw.min_words : 50,
@@ -272,7 +422,7 @@ const TeacherActividades = () => {
         .eq("salon_id", salonId!)
         .order("order_index", { ascending: true });
       if (error) throw error;
-      return data as Actividad[];
+      return data as unknown as Actividad[];
     },
     enabled: !!salonId,
   });
@@ -489,6 +639,117 @@ const TeacherActividades = () => {
     setContent((prev) => ({ ...(prev as WritingContent), [field]: value }));
   }
 
+  // --- Use of English (key word transformation) helpers ---
+  function addUoeItem() {
+    const c = content as UseOfEnglishContent;
+    setContent({ items: [...c.items, { id: Date.now().toString(), sentence: "", keyword: "", gapPrefix: "", gapSuffix: "", answer: "" }] });
+  }
+  function removeUoeItem(id: string) {
+    const c = content as UseOfEnglishContent;
+    setContent({ items: c.items.filter((it) => it.id !== id) });
+  }
+  function updateUoeItem(id: string, field: keyof KeyWordItem, value: string) {
+    const c = content as UseOfEnglishContent;
+    setContent({ items: c.items.map((it) => (it.id === id ? { ...it, [field]: value } : it)) });
+  }
+
+  // --- Reading helpers (passage + multiple-choice questions) ---
+  function updateReadingPassage(passage: string) {
+    setContent((prev) => ({ ...(prev as ReadingContent), passage }));
+  }
+  function addReadingQuestion() {
+    const c = content as ReadingContent;
+    setContent({ ...c, questions: [...c.questions, { id: Date.now().toString(), question: "", options: ["", ""], correctIndex: 0 }] });
+  }
+  function removeReadingQuestion(id: string) {
+    const c = content as ReadingContent;
+    setContent({ ...c, questions: c.questions.filter((q) => q.id !== id) });
+  }
+  function updateReadingQuestion(id: string, question: string) {
+    const c = content as ReadingContent;
+    setContent({ ...c, questions: c.questions.map((q) => (q.id === id ? { ...q, question } : q)) });
+  }
+  function addReadingOption(qId: string) {
+    const c = content as ReadingContent;
+    setContent({ ...c, questions: c.questions.map((q) => (q.id === qId ? { ...q, options: [...q.options, ""] } : q)) });
+  }
+  function removeReadingOption(qId: string, index: number) {
+    const c = content as ReadingContent;
+    setContent({
+      ...c,
+      questions: c.questions.map((q) => {
+        if (q.id !== qId) return q;
+        const options = q.options.filter((_, i) => i !== index);
+        const correctIndex = q.correctIndex >= options.length ? 0 : q.correctIndex > index ? q.correctIndex - 1 : q.correctIndex;
+        return { ...q, options, correctIndex };
+      }),
+    });
+  }
+  function updateReadingOption(qId: string, index: number, value: string) {
+    const c = content as ReadingContent;
+    setContent({
+      ...c,
+      questions: c.questions.map((q) =>
+        q.id === qId ? { ...q, options: q.options.map((o, i) => (i === index ? value : o)) } : q,
+      ),
+    });
+  }
+  function updateReadingCorrect(qId: string, correctIndex: number) {
+    const c = content as ReadingContent;
+    setContent({ ...c, questions: c.questions.map((q) => (q.id === qId ? { ...q, correctIndex } : q)) });
+  }
+
+  // --- Listening helpers (audio url + multiple-choice questions) ---
+  function updateListeningAudioUrl(audio_url: string) {
+    setContent((prev) => ({ ...(prev as ListeningContent), audio_url }));
+  }
+  function addListeningQuestion() {
+    const c = content as ListeningContent;
+    setContent({ ...c, questions: [...c.questions, { id: Date.now().toString(), question: "", options: ["", ""], correctIndex: 0 }] });
+  }
+  function removeListeningQuestion(id: string) {
+    const c = content as ListeningContent;
+    setContent({ ...c, questions: c.questions.filter((q) => q.id !== id) });
+  }
+  function updateListeningQuestion(id: string, question: string) {
+    const c = content as ListeningContent;
+    setContent({ ...c, questions: c.questions.map((q) => (q.id === id ? { ...q, question } : q)) });
+  }
+  function addListeningOption(qId: string) {
+    const c = content as ListeningContent;
+    setContent({ ...c, questions: c.questions.map((q) => (q.id === qId ? { ...q, options: [...q.options, ""] } : q)) });
+  }
+  function removeListeningOption(qId: string, index: number) {
+    const c = content as ListeningContent;
+    setContent({
+      ...c,
+      questions: c.questions.map((q) => {
+        if (q.id !== qId) return q;
+        const options = q.options.filter((_, i) => i !== index);
+        const correctIndex = q.correctIndex >= options.length ? 0 : q.correctIndex > index ? q.correctIndex - 1 : q.correctIndex;
+        return { ...q, options, correctIndex };
+      }),
+    });
+  }
+  function updateListeningOption(qId: string, index: number, value: string) {
+    const c = content as ListeningContent;
+    setContent({
+      ...c,
+      questions: c.questions.map((q) =>
+        q.id === qId ? { ...q, options: q.options.map((o, i) => (i === index ? value : o)) } : q,
+      ),
+    });
+  }
+  function updateListeningCorrect(qId: string, correctIndex: number) {
+    const c = content as ListeningContent;
+    setContent({ ...c, questions: c.questions.map((q) => (q.id === qId ? { ...q, correctIndex } : q)) });
+  }
+
+  // --- Speaking helpers ---
+  function updateSpeaking(field: keyof SpeakingContent, value: string | number) {
+    setContent((prev) => ({ ...(prev as SpeakingContent), [field]: value }));
+  }
+
   function handleSave() {
     if (!form.titulo.trim()) { toast.error("El título es requerido"); return; }
     if (form.tipo === "multiple_matching") {
@@ -521,6 +782,41 @@ const TeacherActividades = () => {
       const c = content as OpenQuestionsContent;
       if (c.questions.length === 0) { toast.error("Agrega al menos una pregunta"); return; }
       if (c.questions.some((q) => !q.question.trim())) { toast.error("Completa el enunciado de cada pregunta"); return; }
+    }
+    if (form.tipo === "use_of_english") {
+      const c = content as UseOfEnglishContent;
+      if (c.items.length === 0) { toast.error("Agrega al menos un ítem"); return; }
+      for (const it of c.items) {
+        if (!it.sentence.trim() || !it.keyword.trim() || !it.answer.trim()) {
+          toast.error("Completa la oración, la palabra clave y la respuesta de cada ítem"); return;
+        }
+      }
+    }
+    if (form.tipo === "reading") {
+      const c = content as ReadingContent;
+      if (!c.passage.trim()) { toast.error("El texto de lectura es requerido"); return; }
+      if (c.questions.length === 0) { toast.error("Agrega al menos una pregunta"); return; }
+      for (const q of c.questions) {
+        if (!q.question.trim()) { toast.error("Completa el enunciado de cada pregunta"); return; }
+        if (q.options.length < 2 || q.options.some((o) => !o.trim())) {
+          toast.error("Cada pregunta necesita al menos 2 opciones completas"); return;
+        }
+      }
+    }
+    if (form.tipo === "listening") {
+      const c = content as ListeningContent;
+      if (!c.audio_url.trim()) { toast.error("La URL del audio es requerida"); return; }
+      if (c.questions.length === 0) { toast.error("Agrega al menos una pregunta"); return; }
+      for (const q of c.questions) {
+        if (!q.question.trim()) { toast.error("Completa el enunciado de cada pregunta"); return; }
+        if (q.options.length < 2 || q.options.some((o) => !o.trim())) {
+          toast.error("Cada pregunta necesita al menos 2 opciones completas"); return;
+        }
+      }
+    }
+    if (form.tipo === "speaking") {
+      const c = content as SpeakingContent;
+      if (!c.prompt.trim()) { toast.error("El tema/consigna es requerido"); return; }
     }
     saveMutation.mutate({
       salon_id: salonId!,
@@ -682,6 +978,10 @@ const TeacherActividades = () => {
                     <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
                     <SelectItem value="writing">Writing</SelectItem>
                     <SelectItem value="open_questions">Preguntas Abiertas</SelectItem>
+                    <SelectItem value="use_of_english">Use of English</SelectItem>
+                    <SelectItem value="reading">Reading</SelectItem>
+                    <SelectItem value="listening">Listening</SelectItem>
+                    <SelectItem value="speaking">Speaking</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -776,6 +1076,43 @@ const TeacherActividades = () => {
                   onRemoveQuestion={removeOpenQuestion}
                   onUpdateQuestion={updateOpenQuestion}
                 />
+              )}
+              {form.tipo === "use_of_english" && (
+                <UseOfEnglishBuilder
+                  content={content as UseOfEnglishContent}
+                  onAddItem={addUoeItem}
+                  onRemoveItem={removeUoeItem}
+                  onUpdateItem={updateUoeItem}
+                />
+              )}
+              {form.tipo === "reading" && (
+                <ReadingBuilder
+                  content={content as ReadingContent}
+                  onPassageChange={updateReadingPassage}
+                  onAddQuestion={addReadingQuestion}
+                  onRemoveQuestion={removeReadingQuestion}
+                  onUpdateQuestion={updateReadingQuestion}
+                  onAddOption={addReadingOption}
+                  onRemoveOption={removeReadingOption}
+                  onUpdateOption={updateReadingOption}
+                  onSetCorrect={updateReadingCorrect}
+                />
+              )}
+              {form.tipo === "listening" && (
+                <ListeningBuilder
+                  content={content as ListeningContent}
+                  onAudioUrlChange={updateListeningAudioUrl}
+                  onAddQuestion={addListeningQuestion}
+                  onRemoveQuestion={removeListeningQuestion}
+                  onUpdateQuestion={updateListeningQuestion}
+                  onAddOption={addListeningOption}
+                  onRemoveOption={removeListeningOption}
+                  onUpdateOption={updateListeningOption}
+                  onSetCorrect={updateListeningCorrect}
+                />
+              )}
+              {form.tipo === "speaking" && (
+                <SpeakingBuilder content={content as SpeakingContent} onUpdate={updateSpeaking} />
               )}
             </div>
 
@@ -1119,6 +1456,246 @@ function WritingBuilder({
             min={1}
             value={content.max_words}
             onChange={(e) => onUpdate("max_words", parseInt(e.target.value) || 300)}
+            className="mt-1"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UseOfEnglishBuilder({
+  content,
+  onAddItem,
+  onRemoveItem,
+  onUpdateItem,
+}: {
+  content: UseOfEnglishContent;
+  onAddItem: () => void;
+  onRemoveItem: (id: string) => void;
+  onUpdateItem: (id: string, field: keyof KeyWordItem, value: string) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-medium text-sm">Key Word Transformations</h3>
+        <Button variant="outline" size="sm" onClick={onAddItem}>
+          <Plus className="h-3 w-3 mr-1" /> Agregar ítem
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Formato Cambridge: el estudiante reescribe la oración usando la palabra clave (sin cambiarla), completando el espacio con 2 a 6 palabras.
+      </p>
+      <div className="space-y-4">
+        {content.items.map((item, i) => (
+          <div key={item.id} className="border rounded-lg p-3 bg-background space-y-2">
+            <div className="flex items-start gap-2">
+              <div className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0 mt-1.5">
+                {i + 1}
+              </div>
+              <div className="flex-1 space-y-2">
+                <div>
+                  <Label className="text-xs">Oración original</Label>
+                  <Input
+                    value={item.sentence}
+                    onChange={(e) => onUpdateItem(item.id, "sentence", e.target.value)}
+                    placeholder="Ej: He hasn't visited his grandmother since March."
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Palabra clave</Label>
+                  <Input
+                    value={item.keyword}
+                    onChange={(e) => onUpdateItem(item.id, "keyword", e.target.value)}
+                    placeholder="LAST"
+                    className="h-8 text-sm font-mono uppercase"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs">Antes del espacio</Label>
+                    <Input
+                      value={item.gapPrefix}
+                      onChange={(e) => onUpdateItem(item.id, "gapPrefix", e.target.value)}
+                      placeholder="He"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Después del espacio</Label>
+                    <Input
+                      value={item.gapSuffix}
+                      onChange={(e) => onUpdateItem(item.id, "gapSuffix", e.target.value)}
+                      placeholder="his grandmother in March."
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Respuesta correcta (2-6 palabras)</Label>
+                  <Input
+                    value={item.answer}
+                    onChange={(e) => onUpdateItem(item.id, "answer", e.target.value)}
+                    placeholder="last visited"
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-destructive hover:text-destructive h-8 w-8 shrink-0"
+                onClick={() => onRemoveItem(item.id)}
+                disabled={content.items.length === 1}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ReadingBuilder({
+  content,
+  onPassageChange,
+  onAddQuestion,
+  onRemoveQuestion,
+  onUpdateQuestion,
+  onAddOption,
+  onRemoveOption,
+  onUpdateOption,
+  onSetCorrect,
+}: {
+  content: ReadingContent;
+  onPassageChange: (passage: string) => void;
+  onAddQuestion: () => void;
+  onRemoveQuestion: (id: string) => void;
+  onUpdateQuestion: (id: string, question: string) => void;
+  onAddOption: (qId: string) => void;
+  onRemoveOption: (qId: string, index: number) => void;
+  onUpdateOption: (qId: string, index: number, value: string) => void;
+  onSetCorrect: (qId: string, correctIndex: number) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label className="font-medium">Texto de lectura *</Label>
+        <Textarea
+          value={content.passage}
+          onChange={(e) => onPassageChange(e.target.value)}
+          placeholder="Pega aquí el pasaje de lectura..."
+          rows={8}
+          className="mt-1"
+        />
+      </div>
+      <div className="border-t pt-4">
+        <MultipleChoiceBuilder
+          content={{ questions: content.questions }}
+          onAddQuestion={onAddQuestion}
+          onRemoveQuestion={onRemoveQuestion}
+          onUpdateQuestion={onUpdateQuestion}
+          onAddOption={onAddOption}
+          onRemoveOption={onRemoveOption}
+          onUpdateOption={onUpdateOption}
+          onSetCorrect={onSetCorrect}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ListeningBuilder({
+  content,
+  onAudioUrlChange,
+  onAddQuestion,
+  onRemoveQuestion,
+  onUpdateQuestion,
+  onAddOption,
+  onRemoveOption,
+  onUpdateOption,
+  onSetCorrect,
+}: {
+  content: ListeningContent;
+  onAudioUrlChange: (audio_url: string) => void;
+  onAddQuestion: () => void;
+  onRemoveQuestion: (id: string) => void;
+  onUpdateQuestion: (id: string, question: string) => void;
+  onAddOption: (qId: string) => void;
+  onRemoveOption: (qId: string, index: number) => void;
+  onUpdateOption: (qId: string, index: number, value: string) => void;
+  onSetCorrect: (qId: string, correctIndex: number) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label className="font-medium">URL del audio *</Label>
+        <Input
+          value={content.audio_url}
+          onChange={(e) => onAudioUrlChange(e.target.value)}
+          placeholder="https://... (mp3, Google Drive, etc.)"
+          className="mt-1"
+        />
+        {content.audio_url && (
+          <audio controls src={content.audio_url} className="w-full mt-2 h-10" />
+        )}
+      </div>
+      <div className="border-t pt-4">
+        <MultipleChoiceBuilder
+          content={{ questions: content.questions }}
+          onAddQuestion={onAddQuestion}
+          onRemoveQuestion={onRemoveQuestion}
+          onUpdateQuestion={onUpdateQuestion}
+          onAddOption={onAddOption}
+          onRemoveOption={onRemoveOption}
+          onUpdateOption={onUpdateOption}
+          onSetCorrect={onSetCorrect}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SpeakingBuilder({
+  content,
+  onUpdate,
+}: {
+  content: SpeakingContent;
+  onUpdate: (field: keyof SpeakingContent, value: string | number) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label className="font-medium">Tema / Consigna *</Label>
+        <Textarea
+          value={content.prompt}
+          onChange={(e) => onUpdate("prompt", e.target.value)}
+          placeholder="Ej: Describe your daily routine and explain what you would change about it."
+          rows={3}
+          className="mt-1"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label className="text-sm">Tiempo de preparación (segundos)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={content.preparation_seconds}
+            onChange={(e) => onUpdate("preparation_seconds", parseInt(e.target.value) || 0)}
+            className="mt-1"
+          />
+        </div>
+        <div>
+          <Label className="text-sm">Duración máxima de grabación (segundos)</Label>
+          <Input
+            type="number"
+            min={10}
+            value={content.max_recording_seconds}
+            onChange={(e) => onUpdate("max_recording_seconds", parseInt(e.target.value) || 90)}
             className="mt-1"
           />
         </div>
