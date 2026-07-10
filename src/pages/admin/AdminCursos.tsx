@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Edit, BookOpen, ImageIcon } from "lucide-react";
+import { Plus, Edit, BookOpen, ImageIcon, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 
 type Curso = {
@@ -336,6 +336,11 @@ const AdminCursos = () => {
                 <Link to={`/admin/cursos/${curso.id}/lecciones`}>
                   <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:bg-gray-100">
                     <BookOpen className="h-4 w-4 mr-2" /> Lecciones
+                  </Button>
+                </Link>
+                <Link to={`/courses/${curso.id}?preview=true`}>
+                  <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:bg-gray-100" title="Vista de estudiante">
+                    <Eye className="h-4 w-4" />
                   </Button>
                 </Link>
                 <Button variant="outline" size="sm" onClick={() => handleEdit(curso)} className="border-gray-300 text-gray-700 hover:bg-gray-100">

@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ChevronLeft, BookOpen } from "lucide-react";
 import { ACCENT, NIVEL_COLORS, LessonCard, type LeccionPublica } from "@/components/lessons/LessonCard";
+import { LessonContent } from "@/components/lessons/LessonContent";
 
 const toEmbedUrl = (url: string): string => {
   if (!url) return "";
@@ -258,15 +259,7 @@ const LessonDetail = () => {
         )}
 
         {/* HTML Content */}
-        {lesson.contenido_html && (
-          <div
-            className="lesson-content"
-            style={{
-              fontSize: "16px", lineHeight: 1.75, color: "#2D3748",
-            }}
-            dangerouslySetInnerHTML={{ __html: lesson.contenido_html }}
-          />
-        )}
+        {lesson.contenido_html && <LessonContent html={lesson.contenido_html} />}
 
         {!lesson.contenido_html && !embedUrl && (
           <p style={{ color: "#9CA3AF", fontStyle: "italic", textAlign: "center", padding: "40px 0" }}>

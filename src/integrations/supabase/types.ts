@@ -53,6 +53,98 @@ export type Database = {
         }
         Relationships: []
       }
+      curso_actividad_progreso: {
+        Row: {
+          actividad_id: string
+          completado: boolean
+          correctas: number | null
+          fecha_completado: string
+          id: string
+          respuestas: Json
+          total: number | null
+          usuario_id: string
+        }
+        Insert: {
+          actividad_id: string
+          completado?: boolean
+          correctas?: number | null
+          fecha_completado?: string
+          id?: string
+          respuestas?: Json
+          total?: number | null
+          usuario_id: string
+        }
+        Update: {
+          actividad_id?: string
+          completado?: boolean
+          correctas?: number | null
+          fecha_completado?: string
+          id?: string
+          respuestas?: Json
+          total?: number | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curso_actividad_progreso_actividad_id_fkey"
+            columns: ["actividad_id"]
+            isOneToOne: false
+            referencedRelation: "curso_actividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curso_actividad_progreso_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curso_actividades: {
+        Row: {
+          activo: boolean
+          contenido: Json
+          fecha_creacion: string
+          id: string
+          instrucciones: string | null
+          leccion_id: string
+          order_index: number
+          tipo: Database["public"]["Enums"]["activity_type"]
+          titulo: string
+        }
+        Insert: {
+          activo?: boolean
+          contenido?: Json
+          fecha_creacion?: string
+          id?: string
+          instrucciones?: string | null
+          leccion_id: string
+          order_index?: number
+          tipo: Database["public"]["Enums"]["activity_type"]
+          titulo: string
+        }
+        Update: {
+          activo?: boolean
+          contenido?: Json
+          fecha_creacion?: string
+          id?: string
+          instrucciones?: string | null
+          leccion_id?: string
+          order_index?: number
+          tipo?: Database["public"]["Enums"]["activity_type"]
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curso_actividades_leccion_id_fkey"
+            columns: ["leccion_id"]
+            isOneToOne: false
+            referencedRelation: "lecciones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cursos: {
         Row: {
           activo: boolean

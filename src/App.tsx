@@ -26,6 +26,7 @@ import Horario from "./pages/dashboard/Horario";
 import CourseDetail from "./pages/CourseDetail";
 import AdminCursos from "./pages/admin/AdminCursos";
 import AdminLecciones from "./pages/admin/AdminLecciones";
+import AdminLeccionActividades from "./pages/admin/AdminLeccionActividades";
 import AdminRecursos from "./pages/admin/AdminRecursos";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
 import AdminProgramas from "./pages/admin/AdminProgramas";
@@ -124,6 +125,7 @@ const App = () => (
               <Route path="usuarios" element={<SuperAdminRoute><AdminUsuarios /></SuperAdminRoute>} />
               <Route path="cursos" element={<AdminCursos />} />
               <Route path="cursos/:cursoId/lecciones" element={<AdminLecciones />} />
+              <Route path="cursos/:cursoId/lecciones/:leccionId/actividades" element={<AdminLeccionActividades />} />
               <Route path="cursos/:cursoId/recursos" element={<AdminRecursos />} />
               <Route path="salones" element={<AdminSalones />} />
               <Route path="horario" element={<AdminHorario />} />

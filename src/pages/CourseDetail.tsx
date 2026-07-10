@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
-import { useParams, Link, Navigate } from "react-router-dom";
+import { useParams, Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTeacherRole } from "@/hooks/useTeacherRole";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { PlayCircle, ChevronLeft, ChevronRight, FileText, Lock, Globe, Menu, X, CheckCircle2, MonitorPlay } from "lucide-react";
+import { PlayCircle, ChevronLeft, ChevronRight, FileText, Lock, Globe, Menu, X, CheckCircle2, MonitorPlay, Eye } from "lucide-react";
 
 import { SecurePDFViewer } from "@/components/pdf/SecurePDFViewer";
 import { SecureWebViewer } from "@/components/pdf/SecureWebViewer";
+import { LessonContent } from "@/components/lessons/LessonContent";
+import { LeccionActividades } from "@/components/activities/LeccionActividades";
 import { useDbCourseProgress } from "@/hooks/useDbCourseProgress";
 import {
   Accordion,
@@ -24,6 +27,11 @@ import logoAce from "@/assets/logo-ace.png";
 const CourseDetail = () => {
   const { courseId } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { isTeacher, isAdmin, isLoading: roleLoading } = useTeacherRole();
+  const isPreview = searchParams.get("preview") === "true";
+  const isTeacherPreview = isPreview && (isTeacher || isAdmin);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [showPdfViewer, setShowPdfViewer] = useState(false);
   const [extraViewerUrl, setExtraViewerUrl] = useState<string | null>(null);
@@ -88,7 +96,7 @@ const CourseDetail = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!courseId && !!enrollment,
+    enabled: !!courseId && !!(enrollment || isTeacherPreview),
   });
 
   // Fetch lessons
@@ -100,11 +108,11 @@ const CourseDetail = () => {
         .select("*")
         .eq("curso_id", courseId)
         .order("order_index", { ascending: true });
-      
+
       if (error) throw error;
       return data;
     },
-    enabled: !!courseId && !!enrollment,
+    enabled: !!courseId && !!(enrollment || isTeacherPreview),
   });
 
   // Group lessons by module using modulo_id (or legacy modulo field as fallback)
@@ -154,7 +162,7 @@ const CourseDetail = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  if (enrollmentLoading) {
+  if (enrollmentLoading || (isPreview && roleLoading)) {
     return (
       <div className="dashboard flex h-screen items-center justify-center">
         <div className="text-center">
@@ -165,8 +173,8 @@ const CourseDetail = () => {
     );
   }
 
-  // Redirect if not enrolled
-  if (!enrollment) {
+  // Redirect if not enrolled (unless a teacher/admin is previewing)
+  if (!enrollment && !isTeacherPreview) {
     return <Navigate to="/dashboard/courses" replace />;
   }
 
@@ -259,7 +267,26 @@ const CourseDetail = () => {
   }
 
   return (
-    <div className="dashboard flex h-screen bg-gray-50 relative">
+    <div className="dashboard flex flex-col h-screen bg-gray-50 relative">
+      {/* Preview banner */}
+      {isTeacherPreview && (
+        <div className="bg-amber-100 border-b border-amber-300 px-6 py-2 flex items-center gap-2 text-amber-800 text-sm shrink-0 z-50">
+          <Eye className="h-4 w-4 shrink-0" />
+          <span className="font-medium">Vista de estudiante</span>
+          <span className="text-amber-700">— estás previsualizando este curso como lo ven los estudiantes.</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-auto text-amber-800 hover:bg-amber-200 hover:text-amber-900 h-7"
+            onClick={() => navigate(-1)}
+          >
+            <ChevronLeft className="h-3.5 w-3.5 mr-1" />
+            Volver a editar
+          </Button>
+        </div>
+      )}
+
+      <div className="flex flex-1 min-h-0 relative">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div 
@@ -579,12 +606,12 @@ const CourseDetail = () => {
                     <MonitorPlay className="h-5 w-5 text-purple-600" />
                     <h3 className="text-lg font-semibold text-gray-900">Contenido interactivo</h3>
                   </div>
-                  <div
-                    className="prose prose-sm max-w-none [&_iframe]:w-full [&_iframe]:rounded-xl [&_iframe]:border"
-                    dangerouslySetInnerHTML={{ __html: (selectedLesson as any).contenido_html }}
-                  />
+                  <LessonContent html={(selectedLesson as any).contenido_html} />
                 </div>
               )}
+
+              {/* Practice activities for this lesson */}
+              <LeccionActividades leccionId={selectedLesson.id} />
 
               {/* Secure PDF Viewer Modal */}
               {showPdfViewer && selectedLesson.pdf_url && (
@@ -633,6 +660,7 @@ const CourseDetail = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

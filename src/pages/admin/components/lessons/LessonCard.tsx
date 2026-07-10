@@ -1,14 +1,16 @@
 import { Draggable } from "@hello-pangea/dnd";
+import { Link, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { 
-  GripVertical, 
-  Edit, 
-  Trash2, 
-  Video, 
-  FileText, 
+import {
+  GripVertical,
+  Edit,
+  Trash2,
+  Video,
+  FileText,
   Globe,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  ClipboardList
 } from "lucide-react";
 import { Leccion } from "../../types/lessonManagement.types";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -45,6 +47,7 @@ export const LessonCard = ({
 }: LessonCardProps) => {
   const isMobile = useIsMobile();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { cursoId } = useParams<{ cursoId: string }>();
 
   const hasVideo = leccion.video_url || leccion.youtube_url;
   const hasPdf = leccion.pdf_url;
@@ -133,6 +136,17 @@ export const LessonCard = ({
 
             {/* Actions */}
             <div className="flex items-center gap-1">
+              <Link to={`/admin/cursos/${cursoId}/lecciones/${leccion.id}/actividades`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 text-xs text-indigo-700 border-indigo-200 hover:bg-indigo-50"
+                  title="Actividades de práctica"
+                >
+                  <ClipboardList className="h-3.5 w-3.5 mr-1" />
+                  Actividades
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="icon"

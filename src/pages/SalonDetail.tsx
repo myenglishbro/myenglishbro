@@ -9,6 +9,7 @@ import {
   ChevronLeft, ChevronRight, School, Video, FileText, Globe,
   ChevronDown, ExternalLink, Eye, Lock, MonitorPlay, ClipboardList,
 } from "lucide-react";
+import { LessonContent } from "@/components/lessons/LessonContent";
 
 type ExtraUrl = { title: string; url: string; type: "web" | "pdf" | "iframe" };
 
@@ -378,10 +379,7 @@ const SalonDetail = () => {
               {selectedLeccion.contenido_html && (
                 <div className="mb-8">
                   <SectionLabel icon={<MonitorPlay className="h-3.5 w-3.5" />} label="Contenido" />
-                  <div
-                    className="prose prose-sm max-w-none [&_iframe]:w-full [&_iframe]:rounded-xl [&_iframe]:border"
-                    dangerouslySetInnerHTML={{ __html: selectedLeccion.contenido_html }}
-                  />
+                  <LessonContent html={selectedLeccion.contenido_html} />
                 </div>
               )}
 
