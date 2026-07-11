@@ -248,6 +248,27 @@
   .level-c2 { @apply bg-violet-100 text-violet-700 border-violet-200; }
 }
 
+/* Lucide icon shapes (same set used across the app's React UI), stored as
+   maskable data-URIs so callouts/details/blockquotes below can recolor them
+   per design token via `background-color` instead of a baked-in SVG color. */
+:root {
+  --icon-info: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 16v-4'/%3E%3Cpath d='M12 8h.01'/%3E%3C/svg%3E");
+  --icon-lightbulb: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5'/%3E%3Cpath d='M9 18h6'/%3E%3Cpath d='M10 22h4'/%3E%3C/svg%3E");
+  --icon-alert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3'/%3E%3Cpath d='M12 9v4'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E");
+  --icon-example: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='8' height='4' x='8' y='2' rx='1' ry='1'/%3E%3Cpath d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/%3E%3Cpath d='M12 11h4'/%3E%3Cpath d='M12 16h4'/%3E%3Cpath d='M8 11h.01'/%3E%3Cpath d='M8 16h.01'/%3E%3C/svg%3E");
+  --icon-chevron-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E");
+  --icon-quote: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z'/%3E%3Cpath d='M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z'/%3E%3C/svg%3E");
+}
+.html-fragment-content .icon-mask {
+  display: inline-block;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
 /* Shared styling for raw HTML fragments pasted into lessons/courses/salones
    (contenido_html). Keeps pasted <h1>/<table>/<button>/etc. on-brand without
    relying on the (unregistered) tailwindcss/typography plugin. */
@@ -255,6 +276,24 @@
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 16px;
   line-height: 1.75;
+  color: hsl(var(--foreground));
+  overflow-wrap: anywhere;
+  /* Padding + rounded corners live on this element itself, not a parent
+     wrapper — so the tinted background below reaches its own edges
+     instead of sitting inside a separate white card (looks "boxed in"). */
+  padding: 1.25rem clamp(1rem, 0.85rem + 0.75vw, 1.75rem);
+  border-radius: var(--radius);
+  /* Faint graph-paper line grid instead of flat white — no color washes,
+     just thin neutral lines, always painted behind children (a background
+     image, not a positioned pseudo-element, so it can never sit on top of
+     pasted content). */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M28 0H0V28' fill='none' stroke='%2394A3B8' stroke-opacity='0.22' stroke-width='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 28px 28px;
+}
+.html-fragment-content ::selection {
+  background: hsl(var(--primary) / 0.25);
   color: hsl(var(--foreground));
 }
 
@@ -273,14 +312,41 @@
   line-height: 1.3;
   margin: 1.5em 0 0.6em;
 }
-.html-fragment-content h1 { font-size: 1.75rem; }
-.html-fragment-content h2 { font-size: 1.5rem; }
-.html-fragment-content h3 { font-size: 1.25rem; }
+.html-fragment-content h1 { font-size: clamp(1.4rem, 1.15rem + 1.1vw, 1.75rem); }
+.html-fragment-content h2 { font-size: clamp(1.25rem, 1.05rem + 0.9vw, 1.5rem); }
+.html-fragment-content h3 { font-size: clamp(1.1rem, 1rem + 0.5vw, 1.25rem); }
 .html-fragment-content h4,
 .html-fragment-content h5,
 .html-fragment-content h6 { font-size: 1.05rem; }
 
+/* Colored "chip" background behind h1/h2 titles so they read as a
+   highlighted banner instead of plain black text on white. */
+.html-fragment-content h1,
+.html-fragment-content h2 {
+  display: inline-block;
+  padding: 0.3em 0.75em;
+  border-radius: 0.6em;
+}
+.html-fragment-content h1 {
+  background: linear-gradient(90deg, hsl(var(--primary) / 0.14), hsl(var(--secondary) / 0.09));
+}
+.html-fragment-content h2 {
+  background: hsl(var(--secondary-soft));
+}
+
 .html-fragment-content p { margin: 0 0 1em; }
+.html-fragment-content small { font-size: 0.85em; color: hsl(var(--muted-foreground)); }
+.html-fragment-content mark {
+  background: hsl(var(--accent) / 0.3);
+  color: hsl(var(--foreground));
+  padding: 0.05em 0.3em;
+  border-radius: 0.25em;
+}
+.html-fragment-content sub,
+.html-fragment-content sup {
+  font-size: 0.75em;
+  line-height: 0;
+}
 
 .html-fragment-content a {
   color: hsl(var(--primary));
@@ -295,22 +361,252 @@
 
 .html-fragment-content ul,
 .html-fragment-content ol {
-  margin: 0 0 1em;
-  padding-left: 1.5em;
+  list-style: none;
+  margin: 0 0 1.1em;
+  padding-left: 0;
 }
-.html-fragment-content ul { list-style: disc; }
-.html-fragment-content ol { list-style: decimal; }
-.html-fragment-content li { margin: 0.35em 0; }
-.html-fragment-content li::marker { color: hsl(var(--secondary)); }
+.html-fragment-content li {
+  position: relative;
+  margin: 0.5em 0;
+  padding-left: 1.85em;
+}
+.html-fragment-content li > ul,
+.html-fragment-content li > ol { margin: 0.5em 0 0.5em 0; }
+
+/* Unordered bullets: filled dot → hollow ring → dash, one style per nesting level */
+.html-fragment-content ul > li::before {
+  content: "";
+  position: absolute;
+  left: 0.15em;
+  top: 0.6em;
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 9999px;
+  background: hsl(var(--secondary));
+}
+.html-fragment-content ul ul > li::before {
+  width: 0.44em;
+  height: 0.44em;
+  background: transparent;
+  border: 2px solid hsl(var(--secondary));
+}
+.html-fragment-content ul ul ul > li::before {
+  top: 0.85em;
+  width: 0.6em;
+  height: 0.14em;
+  border-radius: 1px;
+  border: none;
+  background: hsl(var(--secondary) / 0.55);
+}
+
+/* Ordered lists: numbered circular badges instead of plain "1." text */
+.html-fragment-content ol { counter-reset: ol-count; }
+.html-fragment-content ol > li {
+  counter-increment: ol-count;
+  padding-left: 2.15em;
+}
+.html-fragment-content ol > li::before {
+  content: counter(ol-count);
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 9999px;
+  background: hsl(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.78em;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.html-fragment-content ol ol { counter-reset: ol-count-nested; }
+.html-fragment-content ol ol > li { counter-increment: ol-count-nested; }
+.html-fragment-content ol ol > li::before {
+  content: counter(ol-count-nested);
+  width: 1.3em;
+  height: 1.3em;
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground) / 0.75);
+}
+
+/* Checklists: <ul><li><input type="checkbox"> pasted from Word/Docs */
+.html-fragment-content li:has(> input[type="checkbox"]) {
+  padding-left: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6em;
+}
+.html-fragment-content li:has(> input[type="checkbox"])::before {
+  content: none;
+}
+.html-fragment-content input[type="checkbox"] {
+  margin-top: 0.35em;
+  width: 1.05em;
+  height: 1.05em;
+  accent-color: hsl(var(--primary));
+  flex-shrink: 0;
+}
+
+/* Vocabulary/definition lists — term + meaning pairs */
+.html-fragment-content dl { margin: 0 0 1em; }
+.html-fragment-content dt {
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+.html-fragment-content dd {
+  margin: 0 0 0.75em 1em;
+  color: hsl(var(--foreground) / 0.85);
+}
 
 .html-fragment-content blockquote {
+  position: relative;
   margin: 1em 0;
-  padding: 0.75em 1.25em;
+  padding: 0.75em 1.25em 0.75em 3em;
   border-left: 4px solid hsl(var(--secondary));
   background: hsl(var(--secondary-soft));
   border-radius: 0 var(--radius) var(--radius) 0;
   color: hsl(var(--foreground) / 0.85);
 }
+.html-fragment-content blockquote::before {
+  content: "";
+  position: absolute;
+  top: 0.7em;
+  left: 1em;
+  width: 1.35em;
+  height: 1.35em;
+  background-color: hsl(var(--secondary) / 0.4);
+  mask-image: var(--icon-quote);
+  -webkit-mask-image: var(--icon-quote);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+.html-fragment-content blockquote > *:last-child { margin-bottom: 0; }
+.html-fragment-content blockquote cite,
+.html-fragment-content blockquote footer {
+  display: block;
+  margin-top: 0.5em;
+  font-style: normal;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: hsl(var(--secondary));
+}
+
+/* Callout/note boxes — opt-in via class="nota|tip|importante|ejemplo"
+   on any block element pasted into the HTML fragment */
+.html-fragment-content .nota,
+.html-fragment-content .tip,
+.html-fragment-content .importante,
+.html-fragment-content .ejemplo {
+  position: relative;
+  margin: 1em 0;
+  padding: 0.85em 1.1em 0.85em 3.1em;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  border-left-width: 4px;
+}
+.html-fragment-content .nota::before,
+.html-fragment-content .tip::before,
+.html-fragment-content .importante::before,
+.html-fragment-content .ejemplo::before {
+  content: "";
+  position: absolute;
+  top: 0.9em;
+  left: 1.1em;
+  width: 1.3em;
+  height: 1.3em;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+.html-fragment-content .nota {
+  background: hsl(var(--primary) / 0.06);
+  border-left-color: hsl(var(--primary));
+}
+.html-fragment-content .nota::before {
+  background-color: hsl(var(--primary));
+  mask-image: var(--icon-info);
+  -webkit-mask-image: var(--icon-info);
+}
+.html-fragment-content .tip {
+  background: hsl(var(--secondary-soft));
+  border-left-color: hsl(var(--secondary));
+}
+.html-fragment-content .tip::before {
+  background-color: hsl(var(--secondary));
+  mask-image: var(--icon-lightbulb);
+  -webkit-mask-image: var(--icon-lightbulb);
+}
+.html-fragment-content .importante {
+  background: hsl(var(--destructive) / 0.06);
+  border-left-color: hsl(var(--destructive));
+}
+.html-fragment-content .importante::before {
+  background-color: hsl(var(--destructive));
+  mask-image: var(--icon-alert);
+  -webkit-mask-image: var(--icon-alert);
+}
+.html-fragment-content .ejemplo {
+  background: hsl(var(--accent) / 0.08);
+  border-left-color: hsl(var(--accent));
+}
+.html-fragment-content .ejemplo::before {
+  background-color: hsl(var(--accent));
+  mask-image: var(--icon-example);
+  -webkit-mask-image: var(--icon-example);
+}
+.html-fragment-content .nota > *:last-child,
+.html-fragment-content .tip > *:last-child,
+.html-fragment-content .importante > *:last-child,
+.html-fragment-content .ejemplo > *:last-child { margin-bottom: 0; }
+
+/* Collapsible sections, e.g. "Ver respuesta" */
+.html-fragment-content details {
+  margin: 1em 0;
+  padding: 0.75em 1em;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.4);
+}
+.html-fragment-content summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: hsl(var(--primary));
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.html-fragment-content summary::-webkit-details-marker { display: none; }
+.html-fragment-content summary::before {
+  content: "";
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  background-color: hsl(var(--primary));
+  mask-image: var(--icon-chevron-right);
+  -webkit-mask-image: var(--icon-chevron-right);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  transition: transform 0.2s ease;
+}
+.html-fragment-content details[open] summary::before { transform: rotate(90deg); }
+.html-fragment-content details[open] summary { margin-bottom: 0.6em; }
+.html-fragment-content details > *:last-child { margin-bottom: 0; }
 
 .html-fragment-content code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -336,7 +632,10 @@
 }
 
 .html-fragment-content table {
-  width: 100%;
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-collapse: collapse;
   margin: 1em 0;
   font-size: 0.95em;
@@ -358,14 +657,43 @@
   max-width: 100%;
   height: auto;
   border-radius: var(--radius);
+  margin: 1em auto;
+  display: block;
+}
+
+.html-fragment-content figure {
+  margin: 1.25em 0;
+}
+.html-fragment-content figure img {
+  margin: 0 auto;
+}
+.html-fragment-content figcaption {
+  margin-top: 0.5em;
+  text-align: center;
+  font-size: 0.85em;
+  color: hsl(var(--muted-foreground));
+}
+
+.html-fragment-content video,
+.html-fragment-content audio {
+  max-width: 100%;
+  border-radius: var(--radius);
   margin: 1em 0;
 }
+.html-fragment-content video {
+  width: 100%;
+  box-shadow: var(--card-shadow);
+}
+.html-fragment-content audio { width: 100%; }
 
 .html-fragment-content iframe {
   width: 100%;
+  min-height: 220px;
+  aspect-ratio: 16 / 9;
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   margin: 1em 0;
+  background: hsl(var(--muted) / 0.3);
 }
 
 .html-fragment-content button,
@@ -392,6 +720,32 @@
   background: hsl(var(--primary) / 0.9);
   transform: translateY(-1px);
 }
+.html-fragment-content button:focus-visible,
+.html-fragment-content input[type="button"]:focus-visible,
+.html-fragment-content input[type="submit"]:focus-visible,
+.html-fragment-content .btn:focus-visible,
+.html-fragment-content a:focus-visible,
+.html-fragment-content summary:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+.html-fragment-content button:disabled,
+.html-fragment-content .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Outlined secondary button — class="btn-outline" on a pasted <button>/<a> */
+.html-fragment-content .btn-outline {
+  background: transparent;
+  color: hsl(var(--primary));
+  border: 1.5px solid hsl(var(--primary) / 0.4);
+}
+.html-fragment-content .btn-outline:hover {
+  background: hsl(var(--primary) / 0.08);
+  border-color: hsl(var(--primary));
+}
 
 /* Slide deck viewer for contenido_html built from <section class="slide">
    blocks. Dynamic, presentation-style rendering with fullscreen support. */
@@ -401,7 +755,11 @@
   aspect-ratio: 16 / 9;
   border-radius: var(--radius);
   overflow: hidden;
-  background: var(--gradient-brand);
+  /* Solid card color, not the purple brand gradient: the previous slide
+     unmounts the instant the index changes, so for the duration of the
+     fade-in animation below this background shows through — a gradient
+     here read as a jarring purple flash between slides. */
+  background: hsl(var(--card));
   box-shadow: var(--card-shadow-lg);
 }
 .slide-deck-fullscreen {
@@ -417,9 +775,14 @@
   align-items: center;
   justify-content: center;
   padding: 2.5rem 3rem;
-  overflow-y: auto;
+  /* Always clip here (never scroll) — the blurred blobs below bleed past
+     this box on purpose, and letting this element scroll turned that
+     decorative overflow into visible horizontal + vertical scrollbars.
+     Real long-content scrolling now happens one level in, on
+     .slide-deck-slide-content, which has no decorative overflow to trip over. */
+  overflow: hidden;
   background: hsl(var(--card));
-  animation: slide-deck-fade 0.35s ease;
+  animation: slide-deck-fade 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .slide-deck-slide-cover {
@@ -434,9 +797,41 @@
   background: linear-gradient(180deg, rgba(10, 8, 24, 0.35), rgba(10, 8, 24, 0.75));
 }
 
+/* Corner-bracket line accents — a template/frame look (crop marks), not a
+   color wash — skipped on cover slides, where the photo is the visual and
+   ::before is already spoken for by the dark overlay above. */
+.slide-deck-slide:not(.slide-deck-slide-cover)::before,
+.slide-deck-slide:not(.slide-deck-slide-cover)::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-style: solid;
+  border-color: hsl(var(--primary) / 0.4);
+  border-width: 0;
+  pointer-events: none;
+}
+.slide-deck-slide:not(.slide-deck-slide-cover)::before {
+  top: 1.5rem;
+  left: 1.5rem;
+  border-top-width: 2px;
+  border-left-width: 2px;
+}
+.slide-deck-slide:not(.slide-deck-slide-cover)::after {
+  bottom: 1.5rem;
+  right: 1.5rem;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+  border-color: hsl(var(--secondary) / 0.4);
+}
+
 .slide-deck-slide-content {
   position: relative;
+  z-index: 1;
   max-width: 48rem;
+  max-height: 100%;
+  overflow-y: auto;
   text-align: center;
   margin: 0 auto;
 }
@@ -445,9 +840,72 @@
   color: white;
 }
 
+/* The slide itself (.slide-deck-slide) already fills the 16:9 box with its
+   own background/padding, so the padded, tinted "card" look .html-fragment-content
+   gets elsewhere would just nest a second box inside it — strip that back
+   to plain, transparent content for slides. */
+.slide-deck-slide-content.html-fragment-content {
+  padding: 0;
+  border-radius: 0;
+  background-image: none;
+}
+
+/* Presentation-scale typography: the article-tuned h1–h6 sizes in
+   .html-fragment-content read as "all the same size" on a fullscreen
+   16:9 slide, so slides get their own, much larger hierarchy. */
+.slide-deck-slide-content.html-fragment-content h1 {
+  font-size: clamp(2.25rem, 1.4rem + 3.2vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 0.5em;
+}
+.slide-deck-slide-content.html-fragment-content h2 {
+  font-size: clamp(1.6rem, 1.2rem + 2vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.65em;
+  position: relative;
+  padding-bottom: 0.4em;
+}
+.slide-deck-slide-content.html-fragment-content h2::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 3.5rem;
+  height: 3px;
+  border-radius: 9999px;
+  background: hsl(var(--accent));
+}
+.slide-deck-slide-content.html-fragment-content h3 {
+  font-size: clamp(1.2rem, 1.05rem + 1vw, 1.6rem);
+  font-weight: 600;
+  margin: 0 0 0.5em;
+}
+.slide-deck-slide-content.html-fragment-content p {
+  font-size: clamp(1.05rem, 0.95rem + 0.6vw, 1.25rem);
+  line-height: 1.65;
+}
+.slide-deck-slide-content.html-fragment-content h1 + p {
+  font-size: clamp(1.1rem, 0.95rem + 0.8vw, 1.35rem);
+  color: hsl(var(--muted-foreground));
+  margin-top: -0.25em;
+}
+.slide-deck-slide-cover .slide-deck-slide-content.html-fragment-content h1 + p {
+  color: rgba(255, 255, 255, 0.85);
+}
+.slide-deck-slide-content.html-fragment-content ul,
+.slide-deck-slide-content.html-fragment-content ol {
+  text-align: left;
+  display: inline-block;
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.15rem);
+}
+
 @keyframes slide-deck-fade {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(10px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .slide-deck-fullscreen-btn {

@@ -601,8 +601,8 @@ const CourseDetail = () => {
 
               {/* HTML Content (iframes, embeds) */}
               {(selectedLesson as any).contenido_html && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-6">
-                  <div className="flex items-center gap-2 mb-4">
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
                     <MonitorPlay className="h-5 w-5 text-purple-600" />
                     <h3 className="text-lg font-semibold text-gray-900">Contenido interactivo</h3>
                   </div>
