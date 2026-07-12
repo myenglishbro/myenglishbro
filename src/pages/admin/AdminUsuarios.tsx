@@ -36,7 +36,7 @@ import {
   BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
-import { format, addMonths, addDays } from "date-fns";
+import { format, addDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -44,6 +44,7 @@ import {
   Usuario,
   Matricula,
   Curso,
+  Suscripcion,
   EnrollmentWithCourse,
   computeEnrollmentStatus,
 } from "./types/adminUsuarios.types";
@@ -118,6 +119,30 @@ const AdminUsuarios = () => {
     },
   });
 
+  // Fetch todas las suscripciones (acceso a todos los cursos)
+  const { data: suscripciones = [] } = useQuery({
+    queryKey: ["admin-suscripciones"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("suscripciones")
+        .select("*");
+      if (error) throw error;
+      return data as Suscripcion[];
+    },
+  });
+
+  const getActiveSubscriptionForUser = (usuarioId: string): Suscripcion | null => {
+    const now = new Date();
+    return (
+      suscripciones.find(
+        (s) =>
+          s.usuario_id === usuarioId &&
+          s.estado === "activa" &&
+          new Date(s.fecha_fin) > now
+      ) ?? null
+    );
+  };
+
   // Mutation: crear matricula
   const createMatricula = useMutation({
     mutationFn: async ({
@@ -134,9 +159,7 @@ const AdminUsuarios = () => {
       diasPrueba?: number;
     }) => {
       let fechaFin: string | null = null;
-      if (tipoPago === "mensual") {
-        fechaFin = addMonths(new Date(), 1).toISOString();
-      } else if (tipoPago === "prueba" && trialDays) {
+      if (tipoPago === "prueba" && trialDays) {
         fechaFin = addDays(new Date(), trialDays).toISOString();
       }
       
@@ -159,6 +182,79 @@ const AdminUsuarios = () => {
     onError: (error) => {
       console.error("Error creating matricula:", error);
       toast.error("Error al agregar el curso");
+    },
+  });
+
+  // Mutation: crear o renovar suscripción (acceso a todos los cursos)
+  const createOrRenewSubscription = useMutation({
+    mutationFn: async ({ usuarioId, metodoPago }: { usuarioId: string; metodoPago: string }) => {
+      const { data: existing, error: existingError } = await supabase
+        .from("suscripciones")
+        .select("id, fecha_fin")
+        .eq("usuario_id", usuarioId)
+        .eq("estado", "activa")
+        .gt("fecha_fin", new Date().toISOString())
+        .maybeSingle();
+      if (existingError) throw existingError;
+
+      if (existing) {
+        const nuevaFechaFin = addDays(new Date(existing.fecha_fin), 30).toISOString();
+        const { data, error } = await supabase
+          .from("suscripciones")
+          .update({ fecha_fin: nuevaFechaFin, metodo_pago: metodoPago })
+          .eq("id", existing.id)
+          .select()
+          .single();
+        if (error) throw error;
+        return data;
+      }
+
+      const { data, error } = await supabase
+        .from("suscripciones")
+        .insert({
+          usuario_id: usuarioId,
+          metodo_pago: metodoPago,
+          estado: "activa",
+          fecha_inicio: new Date().toISOString(),
+          fecha_fin: addDays(new Date(), 30).toISOString(),
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-suscripciones"] });
+      toast.success("Suscripción asignada/renovada correctamente");
+      setAddCourseDialogOpen(false);
+    },
+    onError: (error) => {
+      console.error("Error creating/renewing subscription:", error);
+      toast.error("Error al asignar la suscripción");
+    },
+  });
+
+  // Mutation: +30 días a una suscripción existente (sin tocar el método de pago registrado)
+  const extendSubscription30Days = useMutation({
+    mutationFn: async ({ subscriptionId, currentFechaFin }: { subscriptionId: string; currentFechaFin: string }) => {
+      const baseDate = new Date(currentFechaFin) > new Date() ? new Date(currentFechaFin) : new Date();
+      const newFechaFin = addDays(baseDate, 30).toISOString();
+      const { data, error } = await supabase
+        .from("suscripciones")
+        .update({ fecha_fin: newFechaFin, estado: "activa" })
+        .eq("id", subscriptionId)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-suscripciones"] });
+      toast.success("+30 días agregados a la suscripción");
+    },
+    onError: (error) => {
+      console.error("Error extending subscription:", error);
+      toast.error("Error al extender la suscripción");
     },
   });
 
@@ -416,6 +512,14 @@ const AdminUsuarios = () => {
   const handleCopyEmail = (email: string) => {
     navigator.clipboard.writeText(email);
     toast.success("Email copiado");
+  };
+
+  const handleAddSubscription = (metodoPago: string) => {
+    if (!selectedUsuario) return;
+    createOrRenewSubscription.mutate({
+      usuarioId: selectedUsuario.id,
+      metodoPago,
+    });
   };
 
   const handleAddCourse = (cursoId: string, metodoPago: string, tipoPago: string, diasPrueba?: number) => {
@@ -702,12 +806,17 @@ const AdminUsuarios = () => {
         onOpenChange={setDrawerOpen}
         usuario={selectedUsuario}
         enrollments={selectedUsuario ? getEnrollmentsForUser(selectedUsuario.id) : []}
+        subscription={selectedUsuario ? getActiveSubscriptionForUser(selectedUsuario.id) : null}
         cursos={cursos}
         onAdd30Days={handleAdd30Days}
         onEditDates={handleEditDates}
         onTogglePause={handleTogglePause}
         onRemoveEnrollment={handleRemoveEnrollment}
         onAddCourse={() => setAddCourseDialogOpen(true)}
+        onExtendSubscription={(subscriptionId, currentFechaFin) =>
+          extendSubscription30Days.mutate({ subscriptionId, currentFechaFin })
+        }
+        isRenewingSubscription={extendSubscription30Days.isPending}
         onChangePassword={handlePasswordClick}
         onDeleteUser={handleDeleteClick}
         isUpdating={isUpdating}
@@ -720,7 +829,8 @@ const AdminUsuarios = () => {
         cursos={cursos}
         enrolledCourseIds={selectedUsuario ? getEnrollmentsForUser(selectedUsuario.id).map(e => e.curso_id) : []}
         onConfirm={handleAddCourse}
-        isCreating={createMatricula.isPending}
+        onConfirmSubscription={handleAddSubscription}
+        isCreating={createMatricula.isPending || createOrRenewSubscription.isPending}
       />
 
       {/* Edit Dates Dialog */}

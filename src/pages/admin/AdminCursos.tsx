@@ -18,8 +18,8 @@ type Curso = {
   titulo: string;
   slug: string;
   descripcion: string | null;
-  precio_mensual_soles: number | null;
   precio_unico_soles: number | null;
+  precio_usd: number | null;
   imagen_url: string | null;
   activo: boolean;
   duracion_total: string | null;
@@ -37,8 +37,8 @@ const AdminCursos = () => {
     titulo: "",
     slug: "",
     descripcion: "",
-    precio_mensual_soles: "",
     precio_unico_soles: "",
+    precio_usd: "",
     imagen_url: "",
     activo: true,
     duracion_total: "",
@@ -73,8 +73,8 @@ const AdminCursos = () => {
         titulo: data.titulo,
         slug: data.slug,
         descripcion: data.descripcion || null,
-        precio_mensual_soles: data.precio_mensual_soles ? Number(data.precio_mensual_soles) : null,
         precio_unico_soles: data.precio_unico_soles ? Number(data.precio_unico_soles) : null,
+        precio_usd: data.precio_usd ? Number(data.precio_usd) : null,
         imagen_url: data.imagen_url || null,
         activo: data.activo,
         duracion_total: data.duracion_total || null,
@@ -106,8 +106,8 @@ const AdminCursos = () => {
         titulo: data.titulo,
         slug: data.slug,
         descripcion: data.descripcion || null,
-        precio_mensual_soles: data.precio_mensual_soles ? Number(data.precio_mensual_soles) : null,
         precio_unico_soles: data.precio_unico_soles ? Number(data.precio_unico_soles) : null,
+        precio_usd: data.precio_usd ? Number(data.precio_usd) : null,
         imagen_url: data.imagen_url || null,
         activo: data.activo,
         duracion_total: data.duracion_total || null,
@@ -143,7 +143,7 @@ const AdminCursos = () => {
   const resetForm = () => {
     setFormData({
       nivel: "", titulo: "", slug: "", descripcion: "",
-      precio_mensual_soles: "", precio_unico_soles: "", imagen_url: "",
+      precio_unico_soles: "", precio_usd: "", imagen_url: "",
       activo: true, duracion_total: "", learning_outcomes: "",
       instructor: "", rating: "", estudiantes_count: "",
     });
@@ -157,8 +157,8 @@ const AdminCursos = () => {
       titulo: curso.titulo,
       slug: curso.slug,
       descripcion: curso.descripcion || "",
-      precio_mensual_soles: curso.precio_mensual_soles?.toString() || "",
       precio_unico_soles: curso.precio_unico_soles?.toString() || "",
+      precio_usd: curso.precio_usd?.toString() || "",
       imagen_url: curso.imagen_url || "",
       activo: curso.activo,
       duracion_total: curso.duracion_total || "",
@@ -247,12 +247,12 @@ const AdminCursos = () => {
               {/* Pricing */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="precio_mensual_soles" className="text-gray-700 font-medium">Precio Mensual (S/)</Label>
-                  <Input id="precio_mensual_soles" type="number" value={formData.precio_mensual_soles} onChange={(e) => setFormData({ ...formData, precio_mensual_soles: e.target.value })} placeholder="30" className="bg-white border-gray-300 text-gray-900" />
+                  <Label htmlFor="precio_unico_soles" className="text-gray-700 font-medium">Precio Único / Lifetime (S/)</Label>
+                  <Input id="precio_unico_soles" type="number" value={formData.precio_unico_soles} onChange={(e) => setFormData({ ...formData, precio_unico_soles: e.target.value })} placeholder="200" className="bg-white border-gray-300 text-gray-900" />
                 </div>
                 <div>
-                  <Label htmlFor="precio_unico_soles" className="text-gray-700 font-medium">Precio Único / Lifetime (S/)</Label>
-                  <Input id="precio_unico_soles" type="number" value={formData.precio_unico_soles} onChange={(e) => setFormData({ ...formData, precio_unico_soles: e.target.value })} placeholder="100" className="bg-white border-gray-300 text-gray-900" />
+                  <Label htmlFor="precio_usd" className="text-gray-700 font-medium">Precio USD (PayPal)</Label>
+                  <Input id="precio_usd" type="number" value={formData.precio_usd} onChange={(e) => setFormData({ ...formData, precio_usd: e.target.value })} placeholder="60" className="bg-white border-gray-300 text-gray-900" />
                 </div>
               </div>
 
@@ -326,9 +326,9 @@ const AdminCursos = () => {
                   <p className="text-gray-600 text-sm mb-2 line-clamp-2">{curso.descripcion}</p>
                   <div className="flex items-center gap-4 text-xs text-gray-500">
                     <span className="font-mono bg-gray-100 px-2 py-1 rounded">/{curso.slug}</span>
-                    {curso.precio_mensual_soles && <span className="text-blue-600 font-medium">📅 S/{curso.precio_mensual_soles}/mes</span>}
                     {curso.precio_unico_soles && <span className="text-emerald-600 font-medium">♾️ S/{curso.precio_unico_soles}</span>}
-                    {!curso.precio_mensual_soles && !curso.precio_unico_soles && <span className="text-amber-600 font-medium">⚠️ Sin precio</span>}
+                    {curso.precio_usd && <span className="text-[#0070ba] font-medium">💳 ${curso.precio_usd}</span>}
+                    {!curso.precio_unico_soles && !curso.precio_usd && <span className="text-amber-600 font-medium">⚠️ Sin precio</span>}
                   </div>
                 </div>
               </div>

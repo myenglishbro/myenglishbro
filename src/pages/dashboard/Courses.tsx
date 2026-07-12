@@ -1,6 +1,7 @@
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, PlayCircle, Lock, ArrowRight, Clock, MessageCircle, AlertTriangle } from "lucide-react";
+import { BookOpen, PlayCircle, Lock, ArrowRight, Clock, MessageCircle, AlertTriangle, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +21,7 @@ const getTimeRemaining = (fechaFin: string) => {
 const Courses = () => {
   const { user } = useAuth();
 
-  const { data: enrolledCourses, isLoading } = useQuery({
+  const { data: matriculas, isLoading: matriculasLoading } = useQuery({
     queryKey: ["enrolled-courses", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -54,6 +55,61 @@ const Courses = () => {
     },
     enabled: !!user?.id,
   });
+
+  // Suscripción activa: da acceso a todos los cursos mientras esté vigente
+  const { data: activeSubscription } = useQuery({
+    queryKey: ["active-subscription", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+
+      const { data, error } = await supabase
+        .from("suscripciones")
+        .select("id, fecha_fin")
+        .eq("usuario_id", user.id)
+        .eq("estado", "activa")
+        .gt("fecha_fin", new Date().toISOString())
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const { data: allCourses, isLoading: allCoursesLoading } = useQuery({
+    queryKey: ["all-active-cursos"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cursos")
+        .select("id, nivel, titulo, descripcion, slug")
+        .eq("activo", true);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!activeSubscription,
+  });
+
+  const isLoading = matriculasLoading || (!!activeSubscription && allCoursesLoading);
+
+  const enrolledCourses = useMemo(() => {
+    const fromMatriculas = matriculas ?? [];
+    if (!activeSubscription || !allCourses) return fromMatriculas;
+
+    const matriculaCursoIds = new Set(fromMatriculas.map((e: any) => e.curso?.id));
+    const fromSubscription = allCourses
+      .filter((curso) => !matriculaCursoIds.has(curso.id))
+      .map((curso) => ({
+        id: `sub-${curso.id}`,
+        estado: "activa",
+        fecha_inicio: null,
+        fecha_fin: activeSubscription.fecha_fin,
+        tipo_pago: "suscripcion",
+        curso,
+      }));
+
+    return [...fromMatriculas, ...fromSubscription];
+  }, [matriculas, activeSubscription, allCourses]);
 
   const getLevelStyles = (nivel: string) => {
     const styles: Record<string, { bg: string; text: string; border: string; gradient: string }> = {
@@ -126,10 +182,14 @@ const Courses = () => {
 
           const levelStyles = getLevelStyles(course.nivel);
           const isTrial = enrollment.tipo_pago === "prueba";
+          const isFromSubscription = enrollment.tipo_pago === "suscripcion";
           const timeRemaining = isTrial && enrollment.fecha_fin ? getTimeRemaining(enrollment.fecha_fin) : null;
           const isUrgent = isTrial && enrollment.fecha_fin
             ? new Date(enrollment.fecha_fin).getTime() - Date.now() < 2 * 60 * 60 * 1000
             : false;
+          const subscriptionDaysRemaining = isFromSubscription && enrollment.fecha_fin
+            ? Math.max(0, Math.ceil((new Date(enrollment.fecha_fin).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+            : null;
 
           return (
             <div
@@ -148,6 +208,11 @@ const Courses = () => {
                     <Badge className={`${isUrgent ? "bg-red-500" : "bg-amber-500"} text-white border-0 text-xs`}>
                       <Clock className="h-3 w-3 mr-1" />
                       Prueba
+                    </Badge>
+                  ) : isFromSubscription ? (
+                    <Badge className="bg-violet-500 text-white border-0 text-xs">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Suscripción
                     </Badge>
                   ) : (
                     <Badge className="bg-emerald-500 text-white border-0 text-xs">
@@ -177,6 +242,16 @@ const Courses = () => {
                     )}
                     <span className={`text-xs font-semibold ${isUrgent ? "text-red-700" : "text-amber-700"}`}>
                       {timeRemaining}
+                    </span>
+                  </div>
+                )}
+
+                {/* Subscription expiry */}
+                {isFromSubscription && subscriptionDaysRemaining !== null && (
+                  <div className="flex items-center gap-2 p-2.5 rounded-lg mb-4 bg-violet-50 border border-violet-200">
+                    <Sparkles className="h-4 w-4 text-violet-600 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-violet-700">
+                      Suscripción: {subscriptionDaysRemaining} día{subscriptionDaysRemaining !== 1 ? "s" : ""} restantes
                     </span>
                   </div>
                 )}

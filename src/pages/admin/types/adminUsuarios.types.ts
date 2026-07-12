@@ -23,6 +23,15 @@ export interface Curso {
   titulo: string;
 }
 
+export interface Suscripcion {
+  id: string;
+  usuario_id: string;
+  estado: string;
+  metodo_pago: string | null;
+  fecha_inicio: string;
+  fecha_fin: string;
+}
+
 export type EnrollmentStatus = 'active' | 'paused' | 'expired' | 'completed';
 
 export interface EnrollmentWithCourse extends Matricula {

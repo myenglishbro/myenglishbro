@@ -47,22 +47,19 @@ const CourseDetail = () => {
     getProgressPercentage,
   } = useDbCourseProgress(courseId, user?.id);
 
-  // Verify enrollment
-  const { data: enrollment, isLoading: enrollmentLoading } = useQuery({
-    queryKey: ["enrollment", courseId, user?.id],
+  // Verify access: matrícula individual del curso O suscripción activa a todos los cursos
+  const { data: hasAccess, isLoading: enrollmentLoading } = useQuery({
+    queryKey: ["course-access", courseId, user?.id],
     queryFn: async () => {
-      if (!user?.id || !courseId) return null;
-      
-      const { data, error } = await supabase
-        .from("matriculas")
-        .select("*")
-        .eq("usuario_id", user.id)
-        .eq("curso_id", courseId)
-        .eq("estado", "activa")
-        .maybeSingle();
-      
+      if (!user?.id || !courseId) return false;
+
+      const { data, error } = await supabase.rpc("has_active_enrollment", {
+        _user_id: user.id,
+        _curso_id: courseId,
+      });
+
       if (error) throw error;
-      return data;
+      return data as boolean;
     },
     enabled: !!user?.id && !!courseId,
   });
@@ -96,7 +93,7 @@ const CourseDetail = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!courseId && !!(enrollment || isTeacherPreview),
+    enabled: !!courseId && !!(hasAccess || isTeacherPreview),
   });
 
   // Fetch lessons
@@ -112,7 +109,7 @@ const CourseDetail = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!courseId && !!(enrollment || isTeacherPreview),
+    enabled: !!courseId && !!(hasAccess || isTeacherPreview),
   });
 
   // Group lessons by module using modulo_id (or legacy modulo field as fallback)
@@ -174,7 +171,7 @@ const CourseDetail = () => {
   }
 
   // Redirect if not enrolled (unless a teacher/admin is previewing)
-  if (!enrollment && !isTeacherPreview) {
+  if (!hasAccess && !isTeacherPreview) {
     return <Navigate to="/dashboard/courses" replace />;
   }
 

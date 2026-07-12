@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -27,11 +27,8 @@ import {
   Filter,
   Star,
   Users,
-  Clock,
   Award,
-  Zap,
   PlayCircle,
-  AlertCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,8 +41,8 @@ interface Curso {
   slug: string;
   nivel: string;
   descripcion: string | null;
-  precio_mensual_soles: number | null;
   precio_unico_soles: number | null;
+  precio_usd: number | null;
   imagen_url: string | null;
   activo: boolean;
 }
@@ -58,7 +55,36 @@ interface Matricula {
   fecha_fin: string | null;
 }
 
-type EnrollmentState = "none" | "trial_active" | "trial_expired" | "paid_active" | "paid_expired";
+interface Suscripcion {
+  id: string;
+  fecha_fin: string;
+}
+
+interface SuscripcionConfig {
+  precio_soles: number;
+  precio_usd: number;
+}
+
+type EnrollmentState = "none" | "paid_active" | "paid_expired";
+
+type PendingCheckout = { type: "paypal"; productType: "curso" | "suscripcion"; cursoId?: string };
+
+const PENDING_CHECKOUT_KEY = "myenglishbro:pending-checkout";
+
+const savePendingCheckout = (intent: PendingCheckout) => {
+  sessionStorage.setItem(PENDING_CHECKOUT_KEY, JSON.stringify(intent));
+};
+
+const readAndClearPendingCheckout = (): PendingCheckout | null => {
+  const raw = sessionStorage.getItem(PENDING_CHECKOUT_KEY);
+  if (!raw) return null;
+  sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
+  try {
+    return JSON.parse(raw) as PendingCheckout;
+  } catch {
+    return null;
+  }
+};
 
 // Course images based on level
 const levelImages: Record<string, string> = {
@@ -81,11 +107,10 @@ const levelColors: Record<string, { bg: string; text: string; light: string }> =
 
 const Store = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [levelFilter, setLevelFilter] = useState<string>("all");
-  const [startingTrial, setStartingTrial] = useState<string | null>(null);
+  const [payingWith, setPayingWith] = useState<string | null>(null);
 
   const whatsappLink = "https://wa.link/e86mee";
 
@@ -116,6 +141,36 @@ const Store = () => {
     enabled: !!user?.id,
   });
 
+  // Suscripción activa: da acceso a todos los cursos mientras esté vigente
+  const { data: activeSubscription } = useQuery({
+    queryKey: ["store-active-subscription", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from("suscripciones")
+        .select("id, fecha_fin")
+        .eq("usuario_id", user.id)
+        .eq("estado", "activa")
+        .gt("fecha_fin", new Date().toISOString())
+        .maybeSingle();
+      if (error) throw error;
+      return data as Suscripcion | null;
+    },
+    enabled: !!user?.id,
+  });
+
+  const { data: suscripcionConfig } = useQuery({
+    queryKey: ["suscripcion-config"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("suscripcion_config")
+        .select("precio_soles, precio_usd")
+        .single();
+      if (error) throw error;
+      return data as SuscripcionConfig;
+    },
+  });
+
   const enrollmentMap = useMemo(() => {
     return matriculas.reduce((acc, m) => {
       acc[m.curso_id] = m;
@@ -124,25 +179,13 @@ const Store = () => {
   }, [matriculas]);
 
   const getEnrollmentState = (cursoId: string): EnrollmentState => {
+    if (activeSubscription) return "paid_active";
     const m = enrollmentMap[cursoId];
     if (!m) return "none";
     const now = new Date();
-    if (m.tipo_pago !== "prueba") {
-      if (m.estado !== "activa") return "paid_expired";
-      if (m.fecha_fin === null || new Date(m.fecha_fin) > now) return "paid_active";
-      return "paid_expired";
-    }
-    if (!m.fecha_fin || new Date(m.fecha_fin) <= now) return "trial_expired";
-    return "trial_active";
-  };
-
-  const getTimeRemaining = (fechaFin: string) => {
-    const diff = new Date(fechaFin).getTime() - Date.now();
-    if (diff <= 0) return "Finalizada";
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    if (hours > 0) return `${hours}h ${minutes}m restantes`;
-    return `${minutes}m restantes`;
+    if (m.estado !== "activa") return "paid_expired";
+    if (m.fecha_fin === null || new Date(m.fecha_fin) > now) return "paid_active";
+    return "paid_expired";
   };
 
   const uniqueLevels = useMemo(() => {
@@ -162,39 +205,51 @@ const Store = () => {
 
   const handleInscription = () => {
     if (!user) {
-      navigate("/auth?tab=register");
+      navigate("/auth?tab=register&redirect=/store");
       toast.info("Regístrate para inscribirte al curso");
       return;
     }
     window.open(whatsappLink, "_blank");
   };
 
-  const handleFreeTrial = async (cursoId: string) => {
+  const handlePayPalCheckout = async (productType: "curso" | "suscripcion", cursoId?: string) => {
     if (!user) {
-      navigate("/auth?tab=login");
-      toast.info("Inicia sesión para acceder a la prueba gratuita");
+      savePendingCheckout({ type: "paypal", productType, cursoId });
+      navigate("/auth?tab=register&redirect=/store");
+      toast.info("Regístrate para continuar con tu pago");
       return;
     }
 
-    setStartingTrial(cursoId);
+    const key = productType === "curso" ? `curso-${cursoId}` : "suscripcion";
+    setPayingWith(key);
     try {
-      const { data, error } = await supabase.functions.invoke("create-trial-enrollment", {
-        body: { curso_id: cursoId },
+      const { data, error } = await supabase.functions.invoke("create-paypal-order", {
+        body:
+          productType === "curso"
+            ? { product_type: "curso", curso_id: cursoId }
+            : { product_type: "suscripcion" },
       });
 
-      // data contiene el cuerpo de la respuesta incluso en errores HTTP
       const errorMsg = data?.error ?? error?.message;
       if (errorMsg) throw new Error(errorMsg);
+      if (!data?.approveUrl) throw new Error("PayPal no devolvió un link de pago");
 
-      toast.success("¡Prueba gratuita activada! Tienes 24 horas de acceso completo.");
-      await queryClient.invalidateQueries({ queryKey: ["store-matriculas", user.id] });
-      navigate(`/courses/${cursoId}`);
+      window.location.href = data.approveUrl;
     } catch (err: any) {
-      toast.error(err.message || "Error al activar la prueba gratuita");
-    } finally {
-      setStartingTrial(null);
+      toast.error(err.message || "Error al iniciar el pago con PayPal");
+      setPayingWith(null);
     }
   };
+
+  // Retoma automáticamente una compra iniciada antes de iniciar sesión/registrarse
+  useEffect(() => {
+    if (!user) return;
+    const pending = readAndClearPendingCheckout();
+    if (!pending) return;
+
+    handlePayPalCheckout(pending.productType, pending.cursoId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const getColorForLevel = (nivel: string) => {
     return levelColors[nivel] || { bg: "bg-education-primary", text: "text-education-primary", light: "bg-education-light" };
@@ -296,7 +351,6 @@ const Store = () => {
                 const colors = getColorForLevel(curso.nivel);
                 const image = curso.imagen_url || getImageForLevel(curso.nivel);
                 const enrollState = getEnrollmentState(curso.id);
-                const matricula = enrollmentMap[curso.id];
 
                 return (
                   <Card
@@ -316,12 +370,6 @@ const Store = () => {
                       </Badge>
 
                       {/* Enrollment state badge on image */}
-                      {enrollState === "trial_active" && (
-                        <Badge className="absolute top-4 right-4 bg-amber-500 text-white border-0 font-semibold text-xs px-2 py-1">
-                          <Clock className="h-3 w-3 mr-1" />
-                          Prueba activa
-                        </Badge>
-                      )}
                       {enrollState === "paid_active" && (
                         <Badge className="absolute top-4 right-4 bg-emerald-500 text-white border-0 font-semibold text-xs px-2 py-1">
                           <CheckCircle className="h-3 w-3 mr-1" />
@@ -339,51 +387,38 @@ const Store = () => {
                         <p className="text-slate-600 text-sm mb-5 line-clamp-2">{curso.descripcion}</p>
                       )}
 
-                      {/* Trial active countdown */}
-                      {enrollState === "trial_active" && matricula?.fecha_fin && (
-                        <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl mb-4">
-                          <Clock className="h-4 w-4 text-amber-600 flex-shrink-0" />
-                          <span className="text-sm font-semibold text-amber-700">
-                            {getTimeRemaining(matricula.fecha_fin)}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Trial expired notice */}
-                      {enrollState === "trial_expired" && (
-                        <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl mb-4">
-                          <AlertCircle className="h-4 w-4 text-slate-500 flex-shrink-0" />
-                          <span className="text-sm text-slate-600">
-                            Prueba finalizada — adquiere el acceso completo
-                          </span>
-                        </div>
-                      )}
-
                       {/* Pricing (hide when already enrolled) */}
-                      {(enrollState === "none" || enrollState === "trial_expired" || enrollState === "paid_expired") && (
+                      {(enrollState === "none" || enrollState === "paid_expired") && (
                         <div className="space-y-3 mb-6">
-                          {curso.precio_mensual_soles && (
-                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                              <div className="flex items-center gap-2">
-                                <Calendar className="h-5 w-5 text-education-primary" />
-                                <span className="text-sm text-slate-600 font-medium">Mensual</span>
-                              </div>
-                              <span className="text-2xl font-bold text-slate-900">
-                                S/{curso.precio_mensual_soles}
-                              </span>
-                            </div>
-                          )}
-
                           {curso.precio_unico_soles && (
                             <div className="flex items-center justify-between p-3 bg-education-secondary/10 rounded-xl border border-education-secondary/20">
                               <div className="flex items-center gap-2">
                                 <Infinity className="h-5 w-5 text-education-secondary" />
-                                <span className="text-sm text-education-secondary font-medium">Lifetime</span>
+                                <span className="text-sm text-education-secondary font-medium">Acceso de por vida</span>
                               </div>
                               <span className="text-2xl font-bold text-education-secondary">
                                 S/{curso.precio_unico_soles}
                               </span>
                             </div>
+                          )}
+
+                          {curso.precio_usd && (
+                            <Button
+                              variant="outline"
+                              className="w-full justify-between font-semibold rounded-xl h-auto py-3 border-[#0070ba]/30 text-[#0070ba] hover:bg-[#0070ba]/5"
+                              onClick={() => handlePayPalCheckout("curso", curso.id)}
+                              disabled={payingWith === `curso-${curso.id}`}
+                            >
+                              <span className="flex items-center gap-2">
+                                {payingWith === `curso-${curso.id}` ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <CreditCard className="h-4 w-4" />
+                                )}
+                                Pagar con PayPal
+                              </span>
+                              <span className="text-lg font-bold">${curso.precio_usd}</span>
+                            </Button>
                           )}
                         </div>
                       )}
@@ -409,61 +444,13 @@ const Store = () => {
                       {/* Action buttons */}
                       <div className="space-y-3">
                         {enrollState === "none" && (
-                          <>
-                            <Button
-                              size="lg"
-                              className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl h-12"
-                              onClick={() => handleFreeTrial(curso.id)}
-                              disabled={startingTrial === curso.id}
-                            >
-                              {startingTrial === curso.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                              ) : (
-                                <Zap className="h-4 w-4 mr-2" />
-                              )}
-                              Prueba gratuita 24h
-                            </Button>
-                            <Button
-                              size="lg"
-                              variant="outline"
-                              className="w-full font-semibold rounded-xl h-12"
-                              onClick={handleInscription}
-                            >
-                              Inscribirme ahora
-                            </Button>
-                          </>
-                        )}
-
-                        {enrollState === "trial_active" && (
-                          <>
-                            <Button
-                              size="lg"
-                              className="w-full bg-education-primary hover:bg-education-primary/90 text-white font-semibold rounded-xl h-12"
-                              onClick={() => navigate(`/courses/${curso.id}`)}
-                            >
-                              <PlayCircle className="h-4 w-4 mr-2" />
-                              Ir al curso
-                            </Button>
-                            <Button
-                              size="lg"
-                              variant="outline"
-                              className="w-full font-semibold rounded-xl h-12"
-                              onClick={handleInscription}
-                            >
-                              <MessageCircle className="h-4 w-4 mr-2" />
-                              Comprar acceso completo
-                            </Button>
-                          </>
-                        )}
-
-                        {enrollState === "trial_expired" && (
                           <Button
                             size="lg"
                             className="w-full bg-education-primary hover:bg-education-primary/90 text-white font-semibold rounded-xl h-12"
                             onClick={handleInscription}
                           >
                             <MessageCircle className="h-4 w-4 mr-2" />
-                            Inscribirme ahora
+                            Pagar con Yape / Plin
                           </Button>
                         )}
 
@@ -485,7 +472,7 @@ const Store = () => {
                             onClick={handleInscription}
                           >
                             <MessageCircle className="h-4 w-4 mr-2" />
-                            Renovar acceso
+                            Renovar con Yape / Plin
                           </Button>
                         )}
 
@@ -529,43 +516,41 @@ const Store = () => {
                   </div>
                   <div className="text-center md:text-left">
                     <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Acceso Completo</h3>
-                    <p className="text-slate-600 text-lg">Todos los niveles: A1, A2, B1, B2, C1, C2</p>
+                    <p className="text-slate-600 text-lg">Acceso a todos los cursos, sin importar el nivel</p>
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4 max-w-lg mx-auto md:mx-0 mb-8">
-                  <div className="p-5 bg-education-primary/5 rounded-2xl border border-education-primary/10 text-center">
+                <div className="max-w-sm mx-auto md:mx-0 mb-8">
+                  <div className="p-6 bg-education-primary/5 rounded-2xl border border-education-primary/10 text-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
                       <Calendar className="h-5 w-5 text-education-primary" />
-                      <span className="text-education-primary font-semibold text-sm uppercase tracking-wide">Mensual</span>
+                      <span className="text-education-primary font-semibold text-sm uppercase tracking-wide">
+                        Suscripción mensual
+                      </span>
                     </div>
-                    <span className="text-4xl font-bold text-slate-900">S/50</span>
-                    <p className="text-sm text-slate-500 mt-1">por mes</p>
-                  </div>
-
-                  <div className="p-5 bg-education-secondary/5 rounded-2xl border border-education-secondary/20 text-center">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <Infinity className="h-5 w-5 text-education-secondary" />
-                      <span className="text-education-secondary font-semibold text-sm uppercase tracking-wide">Lifetime</span>
-                    </div>
-                    <span className="text-4xl font-bold text-education-secondary">S/500</span>
-                    <p className="text-sm text-slate-500 mt-1">pago único</p>
+                    <span className="text-4xl font-bold text-slate-900">
+                      S/{suscripcionConfig?.precio_soles ?? 65}
+                    </span>
+                    <span className="text-slate-500 text-lg"> /mes</span>
+                    <p className="text-sm text-slate-500 mt-1">
+                      o ${suscripcionConfig?.precio_usd ?? 20} con PayPal — se renueva cada mes
+                    </p>
                   </div>
                 </div>
 
                 <Badge className="bg-education-secondary/10 text-education-secondary border-0 font-semibold mb-8 px-4 py-2">
-                  Ahorra más del 50% vs comprar niveles individuales
+                  Menos de lo que cuesta 1 solo curso individual
                 </Badge>
 
                 <div className="grid md:grid-cols-2 gap-4 mb-8">
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-education-secondary flex-shrink-0" />
-                      <span className="text-slate-700">6 niveles completos (A1-C2)</span>
+                      <span className="text-slate-700">Todos los cursos disponibles, sin límite</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-education-secondary flex-shrink-0" />
-                      <span className="text-slate-700">Más de 300 lecciones en video</span>
+                      <span className="text-slate-700">Video lecciones HD</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-education-secondary flex-shrink-0" />
@@ -575,7 +560,7 @@ const Store = () => {
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-education-secondary flex-shrink-0" />
-                      <span className="text-slate-700">Actualizaciones de por vida</span>
+                      <span className="text-slate-700">Acceso a los cursos nuevos que se agreguen</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-education-secondary flex-shrink-0" />
@@ -588,13 +573,38 @@ const Store = () => {
                   </div>
                 </div>
 
-                <Button
-                  size="lg"
-                  className="w-full md:w-auto px-12 bg-education-primary hover:bg-education-primary/90 text-white font-bold rounded-xl h-14 text-lg shadow-lg shadow-education-primary/30"
-                  onClick={handleInscription}
-                >
-                  Obtener Acceso Completo
-                </Button>
+                {activeSubscription ? (
+                  <div className="inline-flex items-center gap-3 bg-education-secondary/10 text-education-secondary font-semibold rounded-xl px-6 py-4">
+                    <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                    Ya tienes acceso completo activo hasta el{" "}
+                    {new Date(activeSubscription.fecha_fin).toLocaleDateString("es-PE")}
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                      size="lg"
+                      className="px-8 bg-education-primary hover:bg-education-primary/90 text-white font-bold rounded-xl h-14 text-lg shadow-lg shadow-education-primary/30"
+                      onClick={handleInscription}
+                    >
+                      <MessageCircle className="h-5 w-5 mr-2" />
+                      Pagar con Yape / Plin
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="px-8 border-[#0070ba]/30 text-[#0070ba] hover:bg-[#0070ba]/5 font-bold rounded-xl h-14 text-lg"
+                      onClick={() => handlePayPalCheckout("suscripcion")}
+                      disabled={payingWith === "suscripcion"}
+                    >
+                      {payingWith === "suscripcion" ? (
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      ) : (
+                        <CreditCard className="h-5 w-5 mr-2" />
+                      )}
+                      Pagar con PayPal
+                    </Button>
+                  </div>
+                )}
               </div>
             </Card>
           </div>

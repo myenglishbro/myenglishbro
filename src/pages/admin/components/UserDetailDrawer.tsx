@@ -21,7 +21,9 @@ import {
   Key,
   Trash2,
   GraduationCap,
-  Phone
+  Phone,
+  Sparkles,
+  PlusCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -29,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Usuario,
   Curso,
+  Suscripcion,
   EnrollmentWithCourse
 } from "../types/adminUsuarios.types";
 import { EnrollmentCard } from "./EnrollmentCard";
@@ -39,12 +42,15 @@ interface UserDetailDrawerProps {
   onOpenChange: (open: boolean) => void;
   usuario: Usuario | null;
   enrollments: EnrollmentWithCourse[];
+  subscription: Suscripcion | null;
   cursos: Curso[];
   onAdd30Days: (enrollmentId: string, currentFechaFin: string | null) => void;
   onEditDates: (enrollment: EnrollmentWithCourse) => void;
   onTogglePause: (enrollmentId: string, currentStatus: string) => void;
   onRemoveEnrollment: (enrollment: EnrollmentWithCourse) => void;
   onAddCourse: () => void;
+  onExtendSubscription: (subscriptionId: string, currentFechaFin: string) => void;
+  isRenewingSubscription: boolean;
   onChangePassword: (usuario: Usuario) => void;
   onDeleteUser: (usuario: Usuario) => void;
   isUpdating: boolean;
@@ -55,12 +61,15 @@ export function UserDetailDrawer({
   onOpenChange,
   usuario,
   enrollments,
+  subscription,
   cursos,
   onAdd30Days,
   onEditDates,
   onTogglePause,
   onRemoveEnrollment,
   onAddCourse,
+  onExtendSubscription,
+  isRenewingSubscription,
   onChangePassword,
   onDeleteUser,
   isUpdating,
@@ -121,6 +130,10 @@ export function UserDetailDrawer({
     .filter(e => e.fecha_fin && e.computedStatus === 'active')
     .sort((a, b) => new Date(a.fecha_fin!).getTime() - new Date(b.fecha_fin!).getTime())
     [0]?.fecha_fin;
+
+  const subscriptionDaysRemaining = subscription
+    ? Math.max(0, Math.ceil((new Date(subscription.fecha_fin).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -191,6 +204,12 @@ export function UserDetailDrawer({
                   Próx. fin: {format(new Date(nextExpiration), "dd/MM/yy", { locale: es })}
                 </Badge>
               )}
+              {subscription && (
+                <Badge className="bg-violet-100 text-violet-700">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  Suscripción: {subscriptionDaysRemaining}d restantes
+                </Badge>
+              )}
             </div>
           </section>
 
@@ -256,6 +275,43 @@ export function UserDetailDrawer({
               <p className="text-xs text-indigo-600 flex items-center gap-1">
                 <GraduationCap className="h-3 w-3" />
                 Este usuario puede acceder a /teacher y gestionar su salón
+              </p>
+            )}
+          </section>
+
+          {/* Suscripción (acceso a todos los cursos) */}
+          <section className="space-y-3 pt-4 border-t border-gray-100">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              Suscripción (todos los cursos)
+            </h3>
+            {subscription ? (
+              <div className="flex items-center justify-between p-3 bg-violet-50 border border-violet-100 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-violet-600" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      Activa — vence el {format(new Date(subscription.fecha_fin), "dd/MM/yyyy", { locale: es })}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {subscriptionDaysRemaining} día{subscriptionDaysRemaining !== 1 ? "s" : ""} restantes
+                      {subscription.metodo_pago ? ` · pagado con ${subscription.metodo_pago}` : ""}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onExtendSubscription(subscription.id, subscription.fecha_fin)}
+                  disabled={isRenewingSubscription}
+                  className="text-violet-600 border-violet-200 hover:bg-violet-100"
+                >
+                  <PlusCircle className="h-4 w-4 mr-1" />
+                  +30 días
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">
+                Este usuario no tiene una suscripción activa. Puedes asignarle una desde "Agregar Curso".
               </p>
             )}
           </section>

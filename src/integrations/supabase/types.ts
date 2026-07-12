@@ -987,6 +987,72 @@ export type Database = {
           },
         ]
       }
+      suscripcion_config: {
+        Row: {
+          id: boolean
+          precio_soles: number
+          precio_usd: number
+        }
+        Insert: {
+          id?: boolean
+          precio_soles: number
+          precio_usd: number
+        }
+        Update: {
+          id?: boolean
+          precio_soles?: number
+          precio_usd?: number
+        }
+        Relationships: []
+      }
+      suscripciones: {
+        Row: {
+          estado: string
+          fecha_creacion: string
+          fecha_fin: string
+          fecha_inicio: string
+          id: string
+          metodo_pago: string | null
+          pago_id: string | null
+          usuario_id: string
+        }
+        Insert: {
+          estado?: string
+          fecha_creacion?: string
+          fecha_fin: string
+          fecha_inicio?: string
+          id?: string
+          metodo_pago?: string | null
+          pago_id?: string | null
+          usuario_id: string
+        }
+        Update: {
+          estado?: string
+          fecha_creacion?: string
+          fecha_fin?: string
+          fecha_inicio?: string
+          id?: string
+          metodo_pago?: string | null
+          pago_id?: string | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suscripciones_pago_id_fkey"
+            columns: ["pago_id"]
+            isOneToOne: false
+            referencedRelation: "pagos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suscripciones_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string

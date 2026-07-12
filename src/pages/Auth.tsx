@@ -130,7 +130,8 @@ const Auth = () => {
         setIsLoading(false);
       } else {
         toast.success("¡Bienvenido de nuevo!");
-        const url = await getHomeUrl(loggedUser!.id);
+        const redirect = searchParams.get("redirect");
+        const url = redirect || (await getHomeUrl(loggedUser!.id));
         window.location.href = url;
       }
     } catch {
@@ -170,7 +171,8 @@ const Auth = () => {
       setIsLoading(false);
     } else {
       toast.success("¡Cuenta creada! Bienvenido.");
-      setIsLoading(false);
+      const redirect = searchParams.get("redirect");
+      window.location.href = redirect || "/dashboard";
     }
   };
 
