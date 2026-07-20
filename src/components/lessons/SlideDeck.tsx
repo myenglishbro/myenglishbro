@@ -8,6 +8,7 @@ interface SlideDeckProps {
 interface Slide {
   innerHtml: string;
   coverImageSrc: string | null;
+  isHero: boolean;
 }
 
 function parseSlides(html: string): Slide[] {
@@ -17,14 +18,21 @@ function parseSlides(html: string): Slide[] {
   if (sections.length === 0) return [];
 
   return sections.map((section) => {
-    const img = section.querySelector(":scope > img");
-    const isCover = !!img && section.children.length <= 2;
+    const isHero = section.classList.contains("hero");
+    // The authoring prompt wraps every slide's content in <div class="container">,
+    // so the real content root for cover-image detection is that div when present
+    // — not `section` itself, which would only ever have one child (the wrapper).
+    const contentRoot = section.querySelector(":scope > .container") ?? section;
+    const img = contentRoot.querySelector(":scope > img");
+    const isCover = !!img && contentRoot.children.length <= 2;
+
     if (isCover && img) {
       const clone = section.cloneNode(true) as HTMLElement;
-      clone.querySelector(":scope > img")?.remove();
-      return { innerHtml: clone.innerHTML, coverImageSrc: img.getAttribute("src") };
+      const cloneRoot = clone.querySelector(":scope > .container") ?? clone;
+      cloneRoot.querySelector(":scope > img")?.remove();
+      return { innerHtml: clone.innerHTML, coverImageSrc: img.getAttribute("src"), isHero };
     }
-    return { innerHtml: section.innerHTML, coverImageSrc: null };
+    return { innerHtml: section.innerHTML, coverImageSrc: null, isHero };
   });
 }
 
@@ -79,7 +87,7 @@ export function SlideDeck({ html }: SlideDeckProps) {
     <div ref={containerRef} className={`slide-deck ${isFullscreen ? "slide-deck-fullscreen" : ""}`}>
       <div
         key={index}
-        className={`slide-deck-slide ${slide.coverImageSrc ? "slide-deck-slide-cover" : ""}`}
+        className={`slide-deck-slide ${slide.coverImageSrc ? "slide-deck-slide-cover" : ""} ${slide.isHero ? "slide-deck-slide-hero" : ""}`}
         style={slide.coverImageSrc ? { backgroundImage: `url(${slide.coverImageSrc})` } : undefined}
       >
         <div className="html-fragment-content slide-deck-slide-content" dangerouslySetInnerHTML={{ __html: slide.innerHtml }} />

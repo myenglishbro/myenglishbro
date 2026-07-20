@@ -258,6 +258,8 @@
   --icon-example: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='8' height='4' x='8' y='2' rx='1' ry='1'/%3E%3Cpath d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/%3E%3Cpath d='M12 11h4'/%3E%3Cpath d='M12 16h4'/%3E%3Cpath d='M8 11h.01'/%3E%3Cpath d='M8 16h.01'/%3E%3C/svg%3E");
   --icon-chevron-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E");
   --icon-quote: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z'/%3E%3Cpath d='M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z'/%3E%3C/svg%3E");
+  --icon-pencil: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.174 6.812a1 1 0 0 0-3.986-3.986L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E");
+  --icon-question: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E");
 }
 .html-fragment-content .icon-mask {
   display: inline-block;
@@ -500,11 +502,16 @@
 }
 
 /* Callout/note boxes — opt-in via class="nota|tip|importante|ejemplo"
+   (aliases used by the lesson-generation prompt: note|callout|warning|example)
    on any block element pasted into the HTML fragment */
 .html-fragment-content .nota,
+.html-fragment-content .note,
 .html-fragment-content .tip,
+.html-fragment-content .callout,
 .html-fragment-content .importante,
-.html-fragment-content .ejemplo {
+.html-fragment-content .warning,
+.html-fragment-content .ejemplo,
+.html-fragment-content .example {
   position: relative;
   margin: 1em 0;
   padding: 0.85em 1.1em 0.85em 3.1em;
@@ -513,9 +520,13 @@
   border-left-width: 4px;
 }
 .html-fragment-content .nota::before,
+.html-fragment-content .note::before,
 .html-fragment-content .tip::before,
+.html-fragment-content .callout::before,
 .html-fragment-content .importante::before,
-.html-fragment-content .ejemplo::before {
+.html-fragment-content .warning::before,
+.html-fragment-content .ejemplo::before,
+.html-fragment-content .example::before {
   content: "";
   position: absolute;
   top: 0.9em;
@@ -529,46 +540,348 @@
   -webkit-mask-position: center;
   -webkit-mask-size: contain;
 }
-.html-fragment-content .nota {
+.html-fragment-content .nota,
+.html-fragment-content .note {
   background: hsl(var(--primary) / 0.06);
   border-left-color: hsl(var(--primary));
 }
-.html-fragment-content .nota::before {
+.html-fragment-content .nota::before,
+.html-fragment-content .note::before {
   background-color: hsl(var(--primary));
   mask-image: var(--icon-info);
   -webkit-mask-image: var(--icon-info);
 }
-.html-fragment-content .tip {
+.html-fragment-content .tip,
+.html-fragment-content .callout {
   background: hsl(var(--secondary-soft));
   border-left-color: hsl(var(--secondary));
 }
-.html-fragment-content .tip::before {
+.html-fragment-content .tip::before,
+.html-fragment-content .callout::before {
   background-color: hsl(var(--secondary));
   mask-image: var(--icon-lightbulb);
   -webkit-mask-image: var(--icon-lightbulb);
 }
-.html-fragment-content .importante {
+.html-fragment-content .importante,
+.html-fragment-content .warning {
   background: hsl(var(--destructive) / 0.06);
   border-left-color: hsl(var(--destructive));
 }
-.html-fragment-content .importante::before {
+.html-fragment-content .importante::before,
+.html-fragment-content .warning::before {
   background-color: hsl(var(--destructive));
   mask-image: var(--icon-alert);
   -webkit-mask-image: var(--icon-alert);
 }
-.html-fragment-content .ejemplo {
+.html-fragment-content .ejemplo,
+.html-fragment-content .example {
   background: hsl(var(--accent) / 0.08);
   border-left-color: hsl(var(--accent));
 }
-.html-fragment-content .ejemplo::before {
+.html-fragment-content .ejemplo::before,
+.html-fragment-content .example::before {
   background-color: hsl(var(--accent));
   mask-image: var(--icon-example);
   -webkit-mask-image: var(--icon-example);
 }
 .html-fragment-content .nota > *:last-child,
+.html-fragment-content .note > *:last-child,
 .html-fragment-content .tip > *:last-child,
+.html-fragment-content .callout > *:last-child,
 .html-fragment-content .importante > *:last-child,
-.html-fragment-content .ejemplo > *:last-child { margin-bottom: 0; }
+.html-fragment-content .warning > *:last-child,
+.html-fragment-content .ejemplo > *:last-child,
+.html-fragment-content .example > *:last-child { margin-bottom: 0; }
+
+/* Activity / reflection / quiz boxes (prompt: class="activity|reflection|quiz") */
+.html-fragment-content .activity,
+.html-fragment-content .reflection,
+.html-fragment-content .quiz {
+  position: relative;
+  margin: 1.25em 0;
+  padding: 1em 1.25em 1em 3.1em;
+  border-radius: var(--radius);
+}
+.html-fragment-content .activity > *:first-child,
+.html-fragment-content .reflection > *:first-child,
+.html-fragment-content .quiz > *:first-child { margin-top: 0; }
+.html-fragment-content .activity > *:last-child,
+.html-fragment-content .reflection > *:last-child,
+.html-fragment-content .quiz > *:last-child { margin-bottom: 0; }
+.html-fragment-content .activity {
+  background: hsl(var(--primary) / 0.06);
+  border: 1px solid hsl(var(--primary) / 0.25);
+}
+.html-fragment-content .activity::before {
+  content: "";
+  position: absolute;
+  top: 1em;
+  left: 1.1em;
+  width: 1.3em;
+  height: 1.3em;
+  background-color: hsl(var(--primary));
+  mask-image: var(--icon-pencil);
+  -webkit-mask-image: var(--icon-pencil);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+.html-fragment-content .reflection {
+  font-style: italic;
+  background: hsl(var(--accent) / 0.06);
+  border: 1px solid hsl(var(--accent) / 0.3);
+}
+.html-fragment-content .reflection::before {
+  content: "";
+  position: absolute;
+  top: 1em;
+  left: 1.1em;
+  width: 1.3em;
+  height: 1.3em;
+  background-color: hsl(var(--accent));
+  mask-image: var(--icon-question);
+  -webkit-mask-image: var(--icon-question);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+.html-fragment-content .quiz {
+  padding-left: 1.25em;
+  background: hsl(var(--muted) / 0.5);
+  border: 2px dashed hsl(var(--border));
+}
+
+/* Small uppercase label above a title */
+.html-fragment-content .eyebrow {
+  display: block;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--secondary));
+  margin: 0 0 0.4em;
+}
+
+/* Cards + grids: class="card" (optionally with a .card-number badge)
+   inside class="grid grid-2|grid-3|grid-4" */
+.html-fragment-content .card {
+  position: relative;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 1.25em;
+  box-shadow: var(--card-shadow);
+}
+.html-fragment-content .card > *:first-child { margin-top: 0; }
+.html-fragment-content .card > *:last-child { margin-bottom: 0; }
+.html-fragment-content .card-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25em;
+  height: 2.25em;
+  margin-bottom: 0.6em;
+  border-radius: 9999px;
+  background: hsl(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 700;
+}
+.html-fragment-content .grid {
+  display: grid;
+  gap: 1.1em;
+  margin: 1.25em 0;
+}
+.html-fragment-content .grid-2 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.html-fragment-content .grid-3 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.html-fragment-content .grid-4 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+
+/* Plain (non-card) column layouts: class="two-column" / "three-column" */
+.html-fragment-content .two-column,
+.html-fragment-content .three-column {
+  display: grid;
+  gap: 1.5em;
+  margin: 1.25em 0;
+  align-items: start;
+}
+.html-fragment-content .two-column { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.html-fragment-content .three-column { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+
+/* Target-sentence display: <p class="sentence">...<span class="highlight">...</span></p> */
+.html-fragment-content .sentence {
+  font-size: 1.2em;
+  font-weight: 600;
+  line-height: 1.6;
+  margin: 1em 0;
+}
+.html-fragment-content .highlight {
+  background: hsl(var(--accent) / 0.22);
+  color: hsl(var(--foreground));
+  padding: 0.05em 0.35em;
+  border-radius: 0.3em;
+  font-weight: 700;
+}
+.html-fragment-content .blank {
+  display: inline-block;
+  min-width: 5em;
+  height: 1.1em;
+  margin: 0 0.15em;
+  border-bottom: 2px solid hsl(var(--secondary));
+  vertical-align: middle;
+}
+
+/* Dialogue: alternating chat-style lines */
+.html-fragment-content .dialogue {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+  margin: 1.25em 0;
+}
+.html-fragment-content .dialogue .line {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 80%;
+}
+.html-fragment-content .dialogue .line:nth-child(even) {
+  align-items: flex-end;
+  align-self: flex-end;
+}
+.html-fragment-content .dialogue .speaker {
+  font-size: 0.8em;
+  font-weight: 700;
+  color: hsl(var(--secondary));
+  margin-bottom: 0.25em;
+}
+.html-fragment-content .dialogue .line:nth-child(even) .speaker { color: hsl(var(--primary)); }
+.html-fragment-content .dialogue .line p {
+  margin: 0;
+  padding: 0.6em 1em;
+  border-radius: var(--radius);
+  background: hsl(var(--secondary-soft));
+}
+.html-fragment-content .dialogue .line:nth-child(even) p {
+  background: hsl(var(--primary) / 0.1);
+}
+
+/* Brand-colored callout for the target phrase: <div class="language-box"> */
+.html-fragment-content .language-box {
+  margin: 1.25em 0;
+  padding: 1.5em 1.75em;
+  border-radius: var(--radius);
+  background: var(--gradient-brand);
+  text-align: center;
+}
+.html-fragment-content .language-box,
+.html-fragment-content .language-box * {
+  color: white;
+}
+.html-fragment-content .language-box h1,
+.html-fragment-content .language-box h2,
+.html-fragment-content .language-box h3 {
+  margin-top: 0;
+  background: none;
+  display: block;
+  padding: 0;
+}
+.html-fragment-content .language-box .sentence { margin: 0.4em 0 0; }
+.html-fragment-content .language-box .highlight {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+}
+
+.html-fragment-content .table-wrap {
+  overflow-x: auto;
+  margin: 1em 0;
+  -webkit-overflow-scrolling: touch;
+}
+.html-fragment-content .table-wrap table { margin: 0; }
+
+/* Vertical timeline: class="timeline" > class="timeline-item" */
+.html-fragment-content .timeline {
+  position: relative;
+  margin: 1.5em 0;
+  padding-left: 1.75em;
+}
+.html-fragment-content .timeline::before {
+  content: "";
+  position: absolute;
+  left: 0.4em;
+  top: 0.3em;
+  bottom: 0.3em;
+  width: 2px;
+  background: hsl(var(--border));
+}
+.html-fragment-content .timeline-item {
+  position: relative;
+  margin: 0 0 1.5em;
+}
+.html-fragment-content .timeline-item:last-child { margin-bottom: 0; }
+.html-fragment-content .timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -1.75em;
+  top: 0.35em;
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 9999px;
+  background: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.18);
+}
+.html-fragment-content .timeline-item > *:first-child { margin-top: 0; }
+
+/* Small pill badge: <span class="tag">B2</span> */
+.html-fragment-content .tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2em 0.75em;
+  border-radius: 9999px;
+  background: hsl(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: 0.75em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* Collapsible note for the teacher: <details class="teacher-note"> */
+.html-fragment-content details.teacher-note {
+  border-style: dashed;
+  background: hsl(var(--accent) / 0.06);
+}
+.html-fragment-content details.teacher-note summary { color: hsl(var(--accent)); }
+.html-fragment-content details.teacher-note summary::before { background-color: hsl(var(--accent)); }
+.html-fragment-content .teacher-note-content > *:last-child { margin-bottom: 0; }
+
+/* Layout/spacing utilities referenced by the lesson-generation prompt */
+.html-fragment-content .center { text-align: center; }
+.html-fragment-content .max-width-sm { max-width: 28rem; margin-left: auto; margin-right: auto; }
+.html-fragment-content .max-width-md { max-width: 40rem; margin-left: auto; margin-right: auto; }
+.html-fragment-content .max-width-lg { max-width: 56rem; margin-left: auto; margin-right: auto; }
+.html-fragment-content .mt-1 { margin-top: 0.5rem; }
+.html-fragment-content .mt-2 { margin-top: 1rem; }
+.html-fragment-content .mt-3 { margin-top: 1.5rem; }
+.html-fragment-content .mb-0 { margin-bottom: 0; }
+.html-fragment-content .mb-1 { margin-bottom: 0.5rem; }
+.html-fragment-content .mb-2 { margin-bottom: 1rem; }
+.html-fragment-content .text-muted { color: hsl(var(--muted-foreground)); }
+.html-fragment-content .text-primary { color: hsl(var(--primary)); }
+.html-fragment-content .text-secondary { color: hsl(var(--secondary)); }
+
+/* <div class="container"> is a pure layout wrapper inside <section class="slide">
+   — unwrap it visually so it can never introduce accidental width/margin. */
+.html-fragment-content > .container,
+.slide-deck-slide-content > .container {
+  display: contents;
+}
 
 /* Collapsible sections, e.g. "Ver respuesta" */
 .html-fragment-content details {
@@ -797,11 +1110,30 @@
   background: linear-gradient(180deg, rgba(10, 8, 24, 0.35), rgba(10, 8, 24, 0.75));
 }
 
+/* Brand cover slide with no photo: <section class="slide hero"> — same
+   full-bleed "portada" treatment as .slide-deck-slide-cover but with the
+   brand gradient standing in for a background photo. */
+.slide-deck-slide-hero:not(.slide-deck-slide-cover) {
+  background: var(--gradient-brand);
+  color: white;
+}
+.slide-deck-slide-hero:not(.slide-deck-slide-cover) .slide-deck-slide-content,
+.slide-deck-slide-hero:not(.slide-deck-slide-cover) .slide-deck-slide-content * {
+  color: white;
+}
+.slide-deck-slide-hero:not(.slide-deck-slide-cover) .slide-deck-slide-content.html-fragment-content h1,
+.slide-deck-slide-hero:not(.slide-deck-slide-cover) .slide-deck-slide-content.html-fragment-content h2 {
+  background: none;
+}
+.slide-deck-slide-hero:not(.slide-deck-slide-cover) .slide-deck-slide-content.html-fragment-content h1 + p {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 /* Corner-bracket line accents — a template/frame look (crop marks), not a
-   color wash — skipped on cover slides, where the photo is the visual and
-   ::before is already spoken for by the dark overlay above. */
-.slide-deck-slide:not(.slide-deck-slide-cover)::before,
-.slide-deck-slide:not(.slide-deck-slide-cover)::after {
+   color wash — skipped on cover/hero slides, where the photo or brand
+   gradient is the visual and ::before is already spoken for above. */
+.slide-deck-slide:not(.slide-deck-slide-cover):not(.slide-deck-slide-hero)::before,
+.slide-deck-slide:not(.slide-deck-slide-cover):not(.slide-deck-slide-hero)::after {
   content: "";
   position: absolute;
   z-index: 0;
@@ -812,13 +1144,13 @@
   border-width: 0;
   pointer-events: none;
 }
-.slide-deck-slide:not(.slide-deck-slide-cover)::before {
+.slide-deck-slide:not(.slide-deck-slide-cover):not(.slide-deck-slide-hero)::before {
   top: 1.5rem;
   left: 1.5rem;
   border-top-width: 2px;
   border-left-width: 2px;
 }
-.slide-deck-slide:not(.slide-deck-slide-cover)::after {
+.slide-deck-slide:not(.slide-deck-slide-cover):not(.slide-deck-slide-hero)::after {
   bottom: 1.5rem;
   right: 1.5rem;
   border-bottom-width: 2px;
@@ -901,6 +1233,15 @@
   text-align: left;
   display: inline-block;
   font-size: clamp(1rem, 0.9rem + 0.5vw, 1.15rem);
+}
+
+/* Block components read better left-aligned even on a centered slide. */
+.slide-deck-slide-content.html-fragment-content .card,
+.slide-deck-slide-content.html-fragment-content .dialogue,
+.slide-deck-slide-content.html-fragment-content .table-wrap,
+.slide-deck-slide-content.html-fragment-content .timeline,
+.slide-deck-slide-content.html-fragment-content details {
+  text-align: left;
 }
 
 @keyframes slide-deck-fade {
