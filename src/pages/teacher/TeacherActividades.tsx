@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import {
   Plus, Edit, Trash2, ChevronLeft, ClipboardList,
   Shuffle, PenLine, AlignLeft, X, GripVertical,
-  FileText, ClipboardCheck, ListChecks, HelpCircle,
+  FileText, ClipboardCheck, ListChecks, HelpCircle, Eye,
   Sparkles, Copy, ClipboardPaste, SpellCheck, BookOpen, Headphones, Mic,
   CheckSquare, TextCursor, Wand2, GripHorizontal, ArrowUpDown, LayoutGrid,
 } from "lucide-react";
@@ -23,6 +23,7 @@ import {
   DragDropGapfillContent, ReorderContent, CategorizeContent,
   parseClozeGaps,
 } from "@/components/activities/practiceActivity.types";
+import { ActivityPreviewDialog } from "@/components/activities/ActivityPreview";
 import {
   MultipleChoiceClozeBuilder, OpenClozeBuilder, WordFormationBuilder,
   DragDropGapfillBuilder, ReorderBuilder, CategorizeBuilder,
@@ -587,6 +588,7 @@ const TeacherActividades = () => {
   const [isPromptDialogOpen, setIsPromptDialogOpen] = useState(false);
   const [promptText, setPromptText] = useState("");
   const [jsonInput, setJsonInput] = useState("");
+  const [previewActividad, setPreviewActividad] = useState<Actividad | null>(null);
 
   const { data: salon } = useQuery({
     queryKey: ["teacher-salon-name", salonId],
@@ -1147,6 +1149,9 @@ const TeacherActividades = () => {
                     >
                       {a.activo ? "Desactivar" : "Activar"}
                     </Button>
+                    <Button variant="ghost" size="icon" title="Vista previa" onClick={() => setPreviewActividad(a)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => openEdit(a)}>
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -1363,6 +1368,16 @@ const TeacherActividades = () => {
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                className="mr-auto gap-2"
+                onClick={() => setPreviewActividad({
+                  id: "preview", salon_id: salonId!, titulo: form.titulo, instrucciones: form.instrucciones,
+                  tipo: form.tipo, contenido: content, puntaje_maximo: form.puntaje_maximo, activo: true, order_index: 0,
+                })}
+              >
+                <Eye className="h-4 w-4" /> Vista previa
+              </Button>
               <Button variant="outline" onClick={closeDialog}>Cancelar</Button>
               <Button onClick={handleSave} disabled={saveMutation.isPending}>
                 {saveMutation.isPending ? "Guardando..." : editing ? "Guardar cambios" : "Crear actividad"}
@@ -1400,6 +1415,15 @@ const TeacherActividades = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ActivityPreviewDialog
+        open={!!previewActividad}
+        onOpenChange={(open) => !open && setPreviewActividad(null)}
+        titulo={previewActividad?.titulo || ""}
+        instrucciones={previewActividad?.instrucciones || undefined}
+        tipo={previewActividad?.tipo || ""}
+        contenido={previewActividad?.contenido}
+      />
     </div>
   );
 };

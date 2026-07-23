@@ -130,6 +130,44 @@ export function toMaxScore(result: { correctas: number; total: number }, maxScor
   return Math.round((result.correctas / result.total) * maxScore);
 }
 
+// Builds an "answers" object that is 100% correct for a given type — used by the
+// activity preview so a teacher can toggle between an empty view and a fully
+// solved view without needing a real student submission.
+export function getPreviewCorrectAnswers(tipo: PracticeActivityType, contenido: PracticeActivityContent): unknown {
+  switch (tipo) {
+    case "multiple_matching":
+      return Object.fromEntries((contenido as MatchingContent).pairs.map((p) => [p.id, p.id]));
+    case "fill_blanks":
+      return Object.fromEntries((contenido as FillBlanksContent).blanks.map((b) => [b.id, b.answer]));
+    case "multiple_choice":
+      return Object.fromEntries((contenido as MultipleChoiceContent).questions.map((q) => [q.id, q.correctIndex]));
+    case "use_of_english":
+      return Object.fromEntries((contenido as UseOfEnglishContent).items.map((it) => [it.id, it.answer]));
+    case "reading":
+      return Object.fromEntries((contenido as ReadingContent).questions.map((q) => [q.id, q.correctIndex]));
+    case "listening":
+      return Object.fromEntries((contenido as ListeningContent).questions.map((q) => [q.id, q.correctIndex]));
+    case "multiple_choice_cloze":
+      return Object.fromEntries((contenido as MultipleChoiceClozeContent).gaps.map((g) => [g.id, g.correctIndex]));
+    case "open_cloze":
+      return Object.fromEntries((contenido as OpenClozeContent).gaps.map((g) => [g.id, g.answer]));
+    case "word_formation":
+      return Object.fromEntries((contenido as WordFormationContent).gaps.map((g) => [g.id, g.answer]));
+    case "drag_drop_gapfill":
+      return Object.fromEntries((contenido as DragDropGapfillContent).gaps.map((g) => [g.id, g.answer]));
+    case "drag_drop_reorder":
+      return (contenido as ReorderContent).items.map((it) => it.id);
+    case "drag_drop_categorize":
+      return Object.fromEntries((contenido as CategorizeContent).items.map((it) => [it.id, it.categoryId]));
+    default:
+      return {};
+  }
+}
+
+export function getPreviewEmptyAnswers(tipo: PracticeActivityType): unknown {
+  return tipo === "drag_drop_reorder" ? [] : {};
+}
+
 export const TIPO_LABELS: Record<PracticeActivityType, string> = {
   multiple_matching: "Multiple Matching",
   fill_blanks: "Fill in the Blanks",

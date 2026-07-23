@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import {
   Plus, Edit, Trash2, ChevronLeft, ClipboardList,
   Shuffle, AlignLeft, X, GripVertical, ListChecks,
-  Sparkles, Copy, ClipboardPaste, SpellCheck, BookOpen, Headphones,
+  Sparkles, Copy, ClipboardPaste, SpellCheck, BookOpen, Headphones, Eye,
   CheckSquare, TextCursor, Wand2, GripHorizontal, ArrowUpDown, LayoutGrid,
 } from "lucide-react";
 import {
@@ -28,6 +28,7 @@ import {
   MultipleChoiceClozeBuilder, OpenClozeBuilder, WordFormationBuilder,
   DragDropGapfillBuilder, ReorderBuilder, CategorizeBuilder,
 } from "@/components/activities/ActivityBuilders";
+import { ActivityPreviewDialog } from "@/components/activities/ActivityPreview";
 
 const TIPO_ICONS: Record<PracticeActivityType, React.ElementType> = {
   multiple_matching: Shuffle,
@@ -316,6 +317,7 @@ const AdminLeccionActividades = () => {
   const [isPromptDialogOpen, setIsPromptDialogOpen] = useState(false);
   const [promptText, setPromptText] = useState("");
   const [jsonInput, setJsonInput] = useState("");
+  const [previewActividad, setPreviewActividad] = useState<CursoActividad | null>(null);
 
   const { data: leccion } = useQuery({
     queryKey: ["leccion-nombre", leccionId],
@@ -680,6 +682,9 @@ const AdminLeccionActividades = () => {
                     <Button variant="ghost" size="sm" className="text-xs" onClick={() => toggleActivaMutation.mutate({ id: a.id, activo: !a.activo })}>
                       {a.activo ? "Desactivar" : "Activar"}
                     </Button>
+                    <Button variant="ghost" size="icon" title="Vista previa" onClick={() => setPreviewActividad(a)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => openEdit(a)}>
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -841,6 +846,16 @@ const AdminLeccionActividades = () => {
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                className="mr-auto gap-2"
+                onClick={() => setPreviewActividad({
+                  id: "preview", leccion_id: leccionId!, titulo: form.titulo, instrucciones: form.instrucciones,
+                  tipo: form.tipo, contenido: content, activo: true, order_index: 0,
+                })}
+              >
+                <Eye className="h-4 w-4" /> Vista previa
+              </Button>
               <Button variant="outline" onClick={closeDialog}>Cancelar</Button>
               <Button onClick={handleSave} disabled={saveMutation.isPending}>
                 {saveMutation.isPending ? "Guardando..." : editing ? "Guardar cambios" : "Crear actividad"}
@@ -870,6 +885,15 @@ const AdminLeccionActividades = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ActivityPreviewDialog
+        open={!!previewActividad}
+        onOpenChange={(open) => !open && setPreviewActividad(null)}
+        titulo={previewActividad?.titulo || ""}
+        instrucciones={previewActividad?.instrucciones || undefined}
+        tipo={previewActividad?.tipo || ""}
+        contenido={previewActividad?.contenido}
+      />
     </div>
   );
 };
