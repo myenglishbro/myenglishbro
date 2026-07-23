@@ -15,11 +15,22 @@ import {
   ChevronLeft, Trophy, ClipboardList, Star, User,
   CheckCircle2, Clock, Shuffle, AlignLeft, PenLine, Lock,
   ListChecks, HelpCircle, SpellCheck, BookOpen, Headphones, Mic,
+  CheckSquare, TextCursor, Wand2, GripHorizontal, ArrowUpDown, LayoutGrid,
 } from "lucide-react";
+import {
+  MultipleChoiceClozeContent, OpenClozeContent, WordFormationContent,
+  DragDropGapfillContent, ReorderContent, CategorizeContent,
+  scoreMultipleChoiceCloze, scoreOpenCloze, scoreWordFormation,
+  scoreDragDropGapfill, scoreReorder, scoreCategorize, toMaxScore,
+} from "@/components/activities/practiceActivity.types";
+import { MultipleChoiceClozeActivity, OpenClozeActivity, WordFormationActivity } from "@/components/activities/ClozeActivities";
+import { DragDropGapfillActivity, DragDropReorderActivity, DragDropCategorizeActivity } from "@/components/activities/DragDropActivities";
 
 type ActivityType =
   | "multiple_matching" | "fill_blanks" | "multiple_choice" | "writing" | "open_questions"
-  | "use_of_english" | "reading" | "listening" | "speaking";
+  | "use_of_english" | "reading" | "listening" | "speaking"
+  | "multiple_choice_cloze" | "open_cloze" | "word_formation"
+  | "drag_drop_gapfill" | "drag_drop_reorder" | "drag_drop_categorize";
 
 type MatchingPair = { id: string; left: string; right: string };
 type BlankItem = { id: string; answer: string; options: string };
@@ -44,7 +55,9 @@ type Actividad = {
   tipo: ActivityType;
   contenido:
     | MatchingContent | FillBlanksContent | MultipleChoiceContent | WritingContent | OpenQuestionsContent
-    | UseOfEnglishContent | ReadingContent | ListeningContent | SpeakingContent;
+    | UseOfEnglishContent | ReadingContent | ListeningContent | SpeakingContent
+    | MultipleChoiceClozeContent | OpenClozeContent | WordFormationContent
+    | DragDropGapfillContent | ReorderContent | CategorizeContent;
   puntaje_maximo: number;
   activo: boolean;
   order_index: number;
@@ -76,6 +89,12 @@ const TIPO_ICONS: Record<ActivityType, React.ElementType> = {
   reading: BookOpen,
   listening: Headphones,
   speaking: Mic,
+  multiple_choice_cloze: CheckSquare,
+  open_cloze: TextCursor,
+  word_formation: Wand2,
+  drag_drop_gapfill: GripHorizontal,
+  drag_drop_reorder: ArrowUpDown,
+  drag_drop_categorize: LayoutGrid,
 };
 
 const TIPO_LABELS: Record<ActivityType, string> = {
@@ -88,6 +107,12 @@ const TIPO_LABELS: Record<ActivityType, string> = {
   reading: "Reading",
   listening: "Listening",
   speaking: "Speaking",
+  multiple_choice_cloze: "Multiple-Choice Cloze",
+  open_cloze: "Open Cloze",
+  word_formation: "Word Formation",
+  drag_drop_gapfill: "Drag & Drop Gap Fill",
+  drag_drop_reorder: "Reorder",
+  drag_drop_categorize: "Categorize",
 };
 
 const TIPO_COLORS: Record<ActivityType, string> = {
@@ -100,6 +125,12 @@ const TIPO_COLORS: Record<ActivityType, string> = {
   reading: "bg-cyan-100 text-cyan-700",
   listening: "bg-orange-100 text-orange-700",
   speaking: "bg-pink-100 text-pink-700",
+  multiple_choice_cloze: "bg-fuchsia-100 text-fuchsia-700",
+  open_cloze: "bg-teal-100 text-teal-700",
+  word_formation: "bg-lime-100 text-lime-700",
+  drag_drop_gapfill: "bg-sky-100 text-sky-700",
+  drag_drop_reorder: "bg-violet-100 text-violet-700",
+  drag_drop_categorize: "bg-yellow-100 text-yellow-700",
 };
 
 function countWords(text: string) {
@@ -751,6 +782,12 @@ const SalonActividades = () => {
   const [readingAnswers, setReadingAnswers] = useState<Record<string, number>>({});
   const [listeningAnswers, setListeningAnswers] = useState<Record<string, number>>({});
   const [speakingAudioPath, setSpeakingAudioPath] = useState<string | null>(null);
+  const [clozeMcAnswers, setClozeMcAnswers] = useState<Record<string, number>>({});
+  const [openClozeAnswers, setOpenClozeAnswers] = useState<Record<string, string>>({});
+  const [wordFormAnswers, setWordFormAnswers] = useState<Record<string, string>>({});
+  const [dragGapAnswers, setDragGapAnswers] = useState<Record<string, string>>({});
+  const [reorderAnswers, setReorderAnswers] = useState<string[]>([]);
+  const [categorizeAnswers, setCategorizeAnswers] = useState<Record<string, string>>({});
   const [viewingEntrega, setViewingEntrega] = useState<Entrega | null>(null);
 
   const { data: salon } = useQuery({
@@ -870,6 +907,12 @@ const SalonActividades = () => {
       setReadingAnswers({});
       setListeningAnswers({});
       setSpeakingAudioPath(null);
+      setClozeMcAnswers({});
+      setOpenClozeAnswers({});
+      setWordFormAnswers({});
+      setDragGapAnswers({});
+      setReorderAnswers([]);
+      setCategorizeAnswers({});
       setActiveActivity(actividad);
       setViewingEntrega(null);
     }
@@ -989,6 +1032,84 @@ const SalonActividades = () => {
         actividadId: activeActivity.id,
         respuestas: { audio_path: speakingAudioPath },
         autoGraded: false,
+      });
+    } else if (activeActivity.tipo === "multiple_choice_cloze") {
+      const content = activeActivity.contenido as MultipleChoiceClozeContent;
+      if (content.gaps.some((g) => clozeMcAnswers[g.id] === undefined)) {
+        toast.error("Completa todos los espacios antes de enviar");
+        return;
+      }
+      const score = toMaxScore(scoreMultipleChoiceCloze(content.gaps, clozeMcAnswers), activeActivity.puntaje_maximo);
+      submitMutation.mutate({
+        actividadId: activeActivity.id,
+        respuestas: { answers: clozeMcAnswers },
+        puntajeObtenido: score,
+        autoGraded: true,
+      });
+    } else if (activeActivity.tipo === "open_cloze") {
+      const content = activeActivity.contenido as OpenClozeContent;
+      if (content.gaps.some((g) => !openClozeAnswers[g.id]?.trim())) {
+        toast.error("Completa todos los espacios antes de enviar");
+        return;
+      }
+      const score = toMaxScore(scoreOpenCloze(content.gaps, openClozeAnswers), activeActivity.puntaje_maximo);
+      submitMutation.mutate({
+        actividadId: activeActivity.id,
+        respuestas: { answers: openClozeAnswers },
+        puntajeObtenido: score,
+        autoGraded: true,
+      });
+    } else if (activeActivity.tipo === "word_formation") {
+      const content = activeActivity.contenido as WordFormationContent;
+      if (content.gaps.some((g) => !wordFormAnswers[g.id]?.trim())) {
+        toast.error("Completa todos los espacios antes de enviar");
+        return;
+      }
+      const score = toMaxScore(scoreWordFormation(content.gaps, wordFormAnswers), activeActivity.puntaje_maximo);
+      submitMutation.mutate({
+        actividadId: activeActivity.id,
+        respuestas: { answers: wordFormAnswers },
+        puntajeObtenido: score,
+        autoGraded: true,
+      });
+    } else if (activeActivity.tipo === "drag_drop_gapfill") {
+      const content = activeActivity.contenido as DragDropGapfillContent;
+      if (content.gaps.some((g) => !dragGapAnswers[g.id]?.trim())) {
+        toast.error("Completa todos los espacios antes de enviar");
+        return;
+      }
+      const score = toMaxScore(scoreDragDropGapfill(content.gaps, dragGapAnswers), activeActivity.puntaje_maximo);
+      submitMutation.mutate({
+        actividadId: activeActivity.id,
+        respuestas: { answers: dragGapAnswers },
+        puntajeObtenido: score,
+        autoGraded: true,
+      });
+    } else if (activeActivity.tipo === "drag_drop_reorder") {
+      const content = activeActivity.contenido as ReorderContent;
+      if (reorderAnswers.length !== content.items.length) {
+        toast.error("Ordena todos los ítems antes de enviar");
+        return;
+      }
+      const score = toMaxScore(scoreReorder(content.items, reorderAnswers), activeActivity.puntaje_maximo);
+      submitMutation.mutate({
+        actividadId: activeActivity.id,
+        respuestas: { order: reorderAnswers },
+        puntajeObtenido: score,
+        autoGraded: true,
+      });
+    } else if (activeActivity.tipo === "drag_drop_categorize") {
+      const content = activeActivity.contenido as CategorizeContent;
+      if (content.items.some((it) => !categorizeAnswers[it.id])) {
+        toast.error("Clasifica todos los ítems antes de enviar");
+        return;
+      }
+      const score = toMaxScore(scoreCategorize(content.items, categorizeAnswers), activeActivity.puntaje_maximo);
+      submitMutation.mutate({
+        actividadId: activeActivity.id,
+        respuestas: { answers: categorizeAnswers },
+        puntajeObtenido: score,
+        autoGraded: true,
       });
     }
   }
@@ -1248,6 +1369,54 @@ const SalonActividades = () => {
                         userId={user!.id}
                       />
                     )}
+                    {activeActivity.tipo === "multiple_choice_cloze" && (
+                      <MultipleChoiceClozeActivity
+                        key={activeActivity.id}
+                        content={activeActivity.contenido as MultipleChoiceClozeContent}
+                        answers={(viewingEntrega.respuestas as { answers?: Record<string, number> }).answers || {}}
+                        readonly
+                      />
+                    )}
+                    {activeActivity.tipo === "open_cloze" && (
+                      <OpenClozeActivity
+                        key={activeActivity.id}
+                        content={activeActivity.contenido as OpenClozeContent}
+                        answers={(viewingEntrega.respuestas as { answers?: Record<string, string> }).answers || {}}
+                        readonly
+                      />
+                    )}
+                    {activeActivity.tipo === "word_formation" && (
+                      <WordFormationActivity
+                        key={activeActivity.id}
+                        content={activeActivity.contenido as WordFormationContent}
+                        answers={(viewingEntrega.respuestas as { answers?: Record<string, string> }).answers || {}}
+                        readonly
+                      />
+                    )}
+                    {activeActivity.tipo === "drag_drop_gapfill" && (
+                      <DragDropGapfillActivity
+                        key={activeActivity.id}
+                        content={activeActivity.contenido as DragDropGapfillContent}
+                        answers={(viewingEntrega.respuestas as { answers?: Record<string, string> }).answers || {}}
+                        readonly
+                      />
+                    )}
+                    {activeActivity.tipo === "drag_drop_reorder" && (
+                      <DragDropReorderActivity
+                        key={activeActivity.id}
+                        content={activeActivity.contenido as ReorderContent}
+                        answers={(viewingEntrega.respuestas as { order?: string[] }).order || []}
+                        readonly
+                      />
+                    )}
+                    {activeActivity.tipo === "drag_drop_categorize" && (
+                      <DragDropCategorizeActivity
+                        key={activeActivity.id}
+                        content={activeActivity.contenido as CategorizeContent}
+                        answers={(viewingEntrega.respuestas as { answers?: Record<string, string> }).answers || {}}
+                        readonly
+                      />
+                    )}
 
                     {/* Score / feedback section */}
                     <div className="border-t pt-4">
@@ -1335,6 +1504,54 @@ const SalonActividades = () => {
                         salonId={salonId!}
                         actividadId={activeActivity.id}
                         userId={user!.id}
+                      />
+                    )}
+                    {activeActivity.tipo === "multiple_choice_cloze" && (
+                      <MultipleChoiceClozeActivity
+                        key={activeActivity.id}
+                        content={activeActivity.contenido as MultipleChoiceClozeContent}
+                        answers={clozeMcAnswers}
+                        onChange={setClozeMcAnswers}
+                      />
+                    )}
+                    {activeActivity.tipo === "open_cloze" && (
+                      <OpenClozeActivity
+                        key={activeActivity.id}
+                        content={activeActivity.contenido as OpenClozeContent}
+                        answers={openClozeAnswers}
+                        onChange={setOpenClozeAnswers}
+                      />
+                    )}
+                    {activeActivity.tipo === "word_formation" && (
+                      <WordFormationActivity
+                        key={activeActivity.id}
+                        content={activeActivity.contenido as WordFormationContent}
+                        answers={wordFormAnswers}
+                        onChange={setWordFormAnswers}
+                      />
+                    )}
+                    {activeActivity.tipo === "drag_drop_gapfill" && (
+                      <DragDropGapfillActivity
+                        key={activeActivity.id}
+                        content={activeActivity.contenido as DragDropGapfillContent}
+                        answers={dragGapAnswers}
+                        onChange={setDragGapAnswers}
+                      />
+                    )}
+                    {activeActivity.tipo === "drag_drop_reorder" && (
+                      <DragDropReorderActivity
+                        key={activeActivity.id}
+                        content={activeActivity.contenido as ReorderContent}
+                        answers={reorderAnswers}
+                        onChange={setReorderAnswers}
+                      />
+                    )}
+                    {activeActivity.tipo === "drag_drop_categorize" && (
+                      <DragDropCategorizeActivity
+                        key={activeActivity.id}
+                        content={activeActivity.contenido as CategorizeContent}
+                        answers={categorizeAnswers}
+                        onChange={setCategorizeAnswers}
                       />
                     )}
                     <div className="flex justify-end gap-2 border-t pt-4">

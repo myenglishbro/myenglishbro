@@ -1545,6 +1545,12 @@ export type Database = {
         | "reading"
         | "listening"
         | "speaking"
+        | "multiple_choice_cloze"
+        | "open_cloze"
+        | "word_formation"
+        | "drag_drop_gapfill"
+        | "drag_drop_reorder"
+        | "drag_drop_categorize"
       app_role: "admin" | "student" | "content_admin" | "teacher"
       entrega_estado: "entregado" | "calificado"
     }
@@ -1684,6 +1690,12 @@ export const Constants = {
         "reading",
         "listening",
         "speaking",
+        "multiple_choice_cloze",
+        "open_cloze",
+        "word_formation",
+        "drag_drop_gapfill",
+        "drag_drop_reorder",
+        "drag_drop_categorize",
       ],
       app_role: ["admin", "student", "content_admin", "teacher"],
       entrega_estado: ["entregado", "calificado"],

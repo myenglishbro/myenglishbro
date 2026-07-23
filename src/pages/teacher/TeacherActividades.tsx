@@ -16,11 +16,23 @@ import {
   Shuffle, PenLine, AlignLeft, X, GripVertical,
   FileText, ClipboardCheck, ListChecks, HelpCircle,
   Sparkles, Copy, ClipboardPaste, SpellCheck, BookOpen, Headphones, Mic,
+  CheckSquare, TextCursor, Wand2, GripHorizontal, ArrowUpDown, LayoutGrid,
 } from "lucide-react";
+import {
+  MultipleChoiceClozeContent, OpenClozeContent, WordFormationContent,
+  DragDropGapfillContent, ReorderContent, CategorizeContent,
+  parseClozeGaps,
+} from "@/components/activities/practiceActivity.types";
+import {
+  MultipleChoiceClozeBuilder, OpenClozeBuilder, WordFormationBuilder,
+  DragDropGapfillBuilder, ReorderBuilder, CategorizeBuilder,
+} from "@/components/activities/ActivityBuilders";
 
 type ActivityType =
   | "multiple_matching" | "fill_blanks" | "multiple_choice" | "writing" | "open_questions"
-  | "use_of_english" | "reading" | "listening" | "speaking";
+  | "use_of_english" | "reading" | "listening" | "speaking"
+  | "multiple_choice_cloze" | "open_cloze" | "word_formation"
+  | "drag_drop_gapfill" | "drag_drop_reorder" | "drag_drop_categorize";
 
 type MatchingPair = { id: string; left: string; right: string };
 type BlankItem = { id: string; answer: string; options: string };
@@ -38,7 +50,9 @@ type ListeningContent = { audio_url: string; questions: McQuestion[] };
 type SpeakingContent = { prompt: string; preparation_seconds: number; max_recording_seconds: number };
 type ActivityContent =
   | MatchingContent | FillBlanksContent | MultipleChoiceContent | WritingContent | OpenQuestionsContent
-  | UseOfEnglishContent | ReadingContent | ListeningContent | SpeakingContent;
+  | UseOfEnglishContent | ReadingContent | ListeningContent | SpeakingContent
+  | MultipleChoiceClozeContent | OpenClozeContent | WordFormationContent
+  | DragDropGapfillContent | ReorderContent | CategorizeContent;
 
 type Actividad = {
   id: string;
@@ -62,6 +76,12 @@ const TIPO_LABELS: Record<ActivityType, string> = {
   reading: "Reading",
   listening: "Listening",
   speaking: "Speaking",
+  multiple_choice_cloze: "Multiple-Choice Cloze",
+  open_cloze: "Open Cloze",
+  word_formation: "Word Formation",
+  drag_drop_gapfill: "Drag & Drop Gap Fill",
+  drag_drop_reorder: "Reorder",
+  drag_drop_categorize: "Categorize",
 };
 
 const TIPO_ICONS: Record<ActivityType, React.ElementType> = {
@@ -74,6 +94,12 @@ const TIPO_ICONS: Record<ActivityType, React.ElementType> = {
   reading: BookOpen,
   listening: Headphones,
   speaking: Mic,
+  multiple_choice_cloze: CheckSquare,
+  open_cloze: TextCursor,
+  word_formation: Wand2,
+  drag_drop_gapfill: GripHorizontal,
+  drag_drop_reorder: ArrowUpDown,
+  drag_drop_categorize: LayoutGrid,
 };
 
 const TIPO_COLORS: Record<ActivityType, string> = {
@@ -86,6 +112,12 @@ const TIPO_COLORS: Record<ActivityType, string> = {
   reading: "bg-cyan-100 text-cyan-700",
   listening: "bg-orange-100 text-orange-700",
   speaking: "bg-pink-100 text-pink-700",
+  multiple_choice_cloze: "bg-fuchsia-100 text-fuchsia-700",
+  open_cloze: "bg-teal-100 text-teal-700",
+  word_formation: "bg-lime-100 text-lime-700",
+  drag_drop_gapfill: "bg-sky-100 text-sky-700",
+  drag_drop_reorder: "bg-violet-100 text-violet-700",
+  drag_drop_categorize: "bg-yellow-100 text-yellow-700",
 };
 
 const emptyForm = {
@@ -116,7 +148,13 @@ function getDefaultContent(tipo: ActivityType): ActivityContent {
     return { audio_url: "", questions: [{ id: Date.now().toString(), question: "", options: ["", ""], correctIndex: 0 }] };
   }
   if (tipo === "speaking") return { prompt: "", preparation_seconds: 30, max_recording_seconds: 90 };
-  return { prompt: "", min_words: 50, max_words: 300 };
+  if (tipo === "writing") return { prompt: "", min_words: 50, max_words: 300 };
+  if (tipo === "multiple_choice_cloze") return { text: "", gaps: [] };
+  if (tipo === "open_cloze") return { text: "", gaps: [] };
+  if (tipo === "word_formation") return { text: "", gaps: [] };
+  if (tipo === "drag_drop_gapfill") return { text: "", wordBank: [], gaps: [] };
+  if (tipo === "drag_drop_reorder") return { items: [{ id: Date.now().toString(), text: "" }, { id: (Date.now() + 1).toString(), text: "" }] };
+  return { categories: [{ id: Date.now().toString(), label: "" }], items: [] }; // drag_drop_categorize
 }
 
 function parseBlanksFromTemplate(template: string, existing: BlankItem[]): BlankItem[] {
@@ -275,6 +313,95 @@ Reglas:
 Reglas:
 - "prompt" debe motivar al estudiante a hablar en inglés de forma extendida (describir, comparar, opinar, narrar).
 - Ajusta "preparation_seconds" (tiempo para pensar antes de grabar) y "max_recording_seconds" según el nivel (ej. principiante 60-90s, intermedio 90-120s, avanzado 120-180s).`,
+  multiple_choice_cloze: `{
+  "titulo": "string",
+  "instrucciones": "string",
+  "puntaje_maximo": number,
+  "contenido": {
+    "text": "texto con ___ en cada espacio numerado",
+    "gaps": [
+      { "id": "1", "options": ["opción A", "opción B", "opción C", "opción D"], "correctIndex": 0 }
+    ]
+  }
+}
+
+Reglas:
+- Formato Cambridge Use of English Parte 1 (multiple-choice cloze).
+- Usa "___" para cada espacio; un "gap" por cada "___" en el mismo orden.
+- Exactamente 4 opciones por gap; "correctIndex" es el índice (desde 0) de la opción correcta.`,
+  open_cloze: `{
+  "titulo": "string",
+  "instrucciones": "string",
+  "puntaje_maximo": number,
+  "contenido": {
+    "text": "texto con ___ en cada espacio numerado",
+    "gaps": [
+      { "id": "1", "answer": "respuesta correcta", "acceptableAnswers": "alternativa1, alternativa2" }
+    ]
+  }
+}
+
+Reglas:
+- Formato Cambridge Use of English Parte 2 (open cloze, sin opciones).
+- Usa "___" para cada espacio; normalmente preposiciones, conectores o auxiliares.
+- "acceptableAnswers" puede quedar vacío ("") si solo hay una respuesta válida.`,
+  word_formation: `{
+  "titulo": "string",
+  "instrucciones": "string",
+  "puntaje_maximo": number,
+  "contenido": {
+    "text": "texto con ___ en cada espacio numerado",
+    "gaps": [
+      { "id": "1", "rootWord": "PALABRA RAÍZ EN MAYÚSCULAS", "answer": "forma correcta", "acceptableAnswers": "" }
+    ]
+  }
+}
+
+Reglas:
+- Formato Cambridge Use of English Parte 3 (word formation).
+- Usa "___" para cada espacio; "rootWord" es la palabra base que el estudiante debe transformar (ej. HAPPY → "answer": "happiness").`,
+  drag_drop_gapfill: `{
+  "titulo": "string",
+  "instrucciones": "string",
+  "puntaje_maximo": number,
+  "contenido": {
+    "text": "texto con ___ en cada espacio numerado",
+    "wordBank": ["palabra1", "palabra2", "palabra3"],
+    "gaps": [
+      { "id": "1", "answer": "palabra correcta" }
+    ]
+  }
+}
+
+Reglas:
+- Usa "___" para cada espacio.
+- "wordBank" debe incluir todas las respuestas correctas y puede incluir 1-2 palabras de distracción; el estudiante arrastra las palabras a los espacios.`,
+  drag_drop_reorder: `{
+  "titulo": "string",
+  "instrucciones": "string",
+  "puntaje_maximo": number,
+  "contenido": {
+    "items": [
+      { "id": "1", "text": "primer elemento en el orden correcto" },
+      { "id": "2", "text": "segundo elemento" }
+    ]
+  }
+}
+
+Reglas:
+- Escribe los ítems (oraciones o palabras) EN EL ORDEN CORRECTO; el sistema los mostrará mezclados al estudiante, que debe arrastrarlos de vuelta al orden correcto.`,
+  drag_drop_categorize: `{
+  "titulo": "string",
+  "instrucciones": "string",
+  "puntaje_maximo": number,
+  "contenido": {
+    "categories": [{ "id": "1", "label": "Categoría A" }, { "id": "2", "label": "Categoría B" }],
+    "items": [{ "id": "1", "text": "ítem de ejemplo", "categoryId": "1" }]
+  }
+}
+
+Reglas:
+- Cada "item" debe tener el "categoryId" de su categoría correcta; el estudiante arrastra los ítems a la categoría correspondiente.`,
 };
 
 function getPromptForTipo(tipo: ActivityType): string {
@@ -378,6 +505,68 @@ function normalizeContent(tipo: ActivityType, raw: any): ActivityContent { // es
       prompt: String(raw?.prompt ?? ""),
       preparation_seconds: typeof raw?.preparation_seconds === "number" ? raw.preparation_seconds : 30,
       max_recording_seconds: typeof raw?.max_recording_seconds === "number" ? raw.max_recording_seconds : 90,
+    };
+  }
+  if (tipo === "multiple_choice_cloze") {
+    const text = String(raw?.text ?? "");
+    const gaps = Array.isArray(raw?.gaps)
+      ? raw.gaps.map((g: any, i: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+          id: g?.id ? String(g.id) : String(i + 1),
+          options: Array.isArray(g?.options) && g.options.length >= 2
+            ? g.options.map((o: any) => String(o)) // eslint-disable-line @typescript-eslint/no-explicit-any
+            : ["", "", "", ""],
+          correctIndex: typeof g?.correctIndex === "number" ? g.correctIndex : 0,
+        }))
+      : [];
+    return { text, gaps: parseClozeGaps(text, gaps, (id) => ({ id, options: ["", "", "", ""], correctIndex: 0 })) };
+  }
+  if (tipo === "open_cloze") {
+    const text = String(raw?.text ?? "");
+    const gaps = Array.isArray(raw?.gaps)
+      ? raw.gaps.map((g: any, i: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+          id: g?.id ? String(g.id) : String(i + 1),
+          answer: String(g?.answer ?? ""),
+          acceptableAnswers: String(g?.acceptableAnswers ?? ""),
+        }))
+      : [];
+    return { text, gaps: parseClozeGaps(text, gaps, (id) => ({ id, answer: "", acceptableAnswers: "" })) };
+  }
+  if (tipo === "word_formation") {
+    const text = String(raw?.text ?? "");
+    const gaps = Array.isArray(raw?.gaps)
+      ? raw.gaps.map((g: any, i: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+          id: g?.id ? String(g.id) : String(i + 1),
+          rootWord: String(g?.rootWord ?? ""),
+          answer: String(g?.answer ?? ""),
+          acceptableAnswers: String(g?.acceptableAnswers ?? ""),
+        }))
+      : [];
+    return { text, gaps: parseClozeGaps(text, gaps, (id) => ({ id, rootWord: "", answer: "", acceptableAnswers: "" })) };
+  }
+  if (tipo === "drag_drop_gapfill") {
+    const text = String(raw?.text ?? "");
+    const gaps = Array.isArray(raw?.gaps)
+      ? raw.gaps.map((g: any, i: number) => ({ id: g?.id ? String(g.id) : String(i + 1), answer: String(g?.answer ?? "") })) // eslint-disable-line @typescript-eslint/no-explicit-any
+      : [];
+    const wordBank = Array.isArray(raw?.wordBank) ? raw.wordBank.map((w: any) => String(w)) : []; // eslint-disable-line @typescript-eslint/no-explicit-any
+    return { text, wordBank, gaps: parseClozeGaps(text, gaps, (id) => ({ id, answer: "" })) };
+  }
+  if (tipo === "drag_drop_reorder") {
+    const items = Array.isArray(raw?.items) ? raw.items : [];
+    return {
+      items: items.map((it: any, i: number) => ({ id: it?.id ? String(it.id) : String(i + 1), text: String(it?.text ?? "") })), // eslint-disable-line @typescript-eslint/no-explicit-any
+    };
+  }
+  if (tipo === "drag_drop_categorize") {
+    const categories = Array.isArray(raw?.categories) ? raw.categories : [];
+    const items = Array.isArray(raw?.items) ? raw.items : [];
+    return {
+      categories: categories.map((c: any, i: number) => ({ id: c?.id ? String(c.id) : String(i + 1), label: String(c?.label ?? "") })), // eslint-disable-line @typescript-eslint/no-explicit-any
+      items: items.map((it: any, i: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+        id: it?.id ? String(it.id) : String(i + 1),
+        text: String(it?.text ?? ""),
+        categoryId: it?.categoryId ? String(it.categoryId) : "",
+      })),
     };
   }
   return {
@@ -818,6 +1007,39 @@ const TeacherActividades = () => {
       const c = content as SpeakingContent;
       if (!c.prompt.trim()) { toast.error("El tema/consigna es requerido"); return; }
     }
+    if (form.tipo === "multiple_choice_cloze") {
+      const c = content as MultipleChoiceClozeContent;
+      if (!c.text.trim() || c.gaps.length === 0) { toast.error("Agrega el texto con al menos un espacio (___)"); return; }
+      for (const g of c.gaps) {
+        if (g.options.length < 2 || g.options.some((o) => !o.trim())) { toast.error("Cada espacio necesita sus 4 opciones completas"); return; }
+      }
+    }
+    if (form.tipo === "open_cloze") {
+      const c = content as OpenClozeContent;
+      if (!c.text.trim() || c.gaps.length === 0) { toast.error("Agrega el texto con al menos un espacio (___)"); return; }
+      if (c.gaps.some((g) => !g.answer.trim())) { toast.error("Completa la respuesta de cada espacio"); return; }
+    }
+    if (form.tipo === "word_formation") {
+      const c = content as WordFormationContent;
+      if (!c.text.trim() || c.gaps.length === 0) { toast.error("Agrega el texto con al menos un espacio (___)"); return; }
+      if (c.gaps.some((g) => !g.rootWord.trim() || !g.answer.trim())) { toast.error("Completa la palabra raíz y la respuesta de cada espacio"); return; }
+    }
+    if (form.tipo === "drag_drop_gapfill") {
+      const c = content as DragDropGapfillContent;
+      if (!c.text.trim() || c.gaps.length === 0) { toast.error("Agrega el texto con al menos un espacio (___)"); return; }
+      if (c.gaps.some((g) => !g.answer.trim())) { toast.error("Completa la respuesta de cada espacio"); return; }
+      if (c.wordBank.filter((w) => w.trim()).length === 0) { toast.error("Agrega el banco de palabras"); return; }
+    }
+    if (form.tipo === "drag_drop_reorder") {
+      const c = content as ReorderContent;
+      if (c.items.length < 2) { toast.error("Agrega al menos 2 ítems para ordenar"); return; }
+      if (c.items.some((it) => !it.text.trim())) { toast.error("Completa el texto de cada ítem"); return; }
+    }
+    if (form.tipo === "drag_drop_categorize") {
+      const c = content as CategorizeContent;
+      if (c.categories.length === 0 || c.categories.some((cat) => !cat.label.trim())) { toast.error("Completa el nombre de cada categoría"); return; }
+      if (c.items.length === 0 || c.items.some((it) => !it.text.trim() || !it.categoryId)) { toast.error("Completa el texto y la categoría de cada ítem"); return; }
+    }
     saveMutation.mutate({
       salon_id: salonId!,
       titulo: form.titulo.trim(),
@@ -982,6 +1204,12 @@ const TeacherActividades = () => {
                     <SelectItem value="reading">Reading</SelectItem>
                     <SelectItem value="listening">Listening</SelectItem>
                     <SelectItem value="speaking">Speaking</SelectItem>
+                    <SelectItem value="multiple_choice_cloze">Multiple-Choice Cloze</SelectItem>
+                    <SelectItem value="open_cloze">Open Cloze</SelectItem>
+                    <SelectItem value="word_formation">Word Formation</SelectItem>
+                    <SelectItem value="drag_drop_gapfill">Drag & Drop Gap Fill</SelectItem>
+                    <SelectItem value="drag_drop_reorder">Reorder</SelectItem>
+                    <SelectItem value="drag_drop_categorize">Categorize</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1113,6 +1341,24 @@ const TeacherActividades = () => {
               )}
               {form.tipo === "speaking" && (
                 <SpeakingBuilder content={content as SpeakingContent} onUpdate={updateSpeaking} />
+              )}
+              {form.tipo === "multiple_choice_cloze" && (
+                <MultipleChoiceClozeBuilder content={content as MultipleChoiceClozeContent} onChange={setContent} />
+              )}
+              {form.tipo === "open_cloze" && (
+                <OpenClozeBuilder content={content as OpenClozeContent} onChange={setContent} />
+              )}
+              {form.tipo === "word_formation" && (
+                <WordFormationBuilder content={content as WordFormationContent} onChange={setContent} />
+              )}
+              {form.tipo === "drag_drop_gapfill" && (
+                <DragDropGapfillBuilder content={content as DragDropGapfillContent} onChange={setContent} />
+              )}
+              {form.tipo === "drag_drop_reorder" && (
+                <ReorderBuilder content={content as ReorderContent} onChange={setContent} />
+              )}
+              {form.tipo === "drag_drop_categorize" && (
+                <CategorizeBuilder content={content as CategorizeContent} onChange={setContent} />
               )}
             </div>
 

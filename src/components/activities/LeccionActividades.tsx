@@ -8,16 +8,25 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ClipboardList, Shuffle, AlignLeft, ListChecks, SpellCheck, BookOpen, Headphones } from "lucide-react";
+import {
+  ClipboardList, Shuffle, AlignLeft, ListChecks, SpellCheck, BookOpen, Headphones,
+  CheckSquare, TextCursor, Wand2, GripHorizontal, ArrowUpDown, LayoutGrid,
+} from "lucide-react";
 import {
   CursoActividad, PracticeActivityType, TIPO_LABELS, TIPO_COLORS,
   MatchingContent, FillBlanksContent, MultipleChoiceContent, UseOfEnglishContent, ReadingContent, ListeningContent,
+  MultipleChoiceClozeContent, OpenClozeContent, WordFormationContent,
+  DragDropGapfillContent, ReorderContent, CategorizeContent,
   scoreMatching, scoreFillBlanks, scoreMultipleChoice, scoreUseOfEnglish,
+  scoreMultipleChoiceCloze, scoreOpenCloze, scoreWordFormation,
+  scoreDragDropGapfill, scoreReorder, scoreCategorize,
 } from "./practiceActivity.types";
 import {
   MatchingPractice, FillBlanksPractice, MultipleChoicePractice,
   UseOfEnglishPractice, ReadingPractice, ListeningPractice,
 } from "./PracticeActivityBody";
+import { MultipleChoiceClozeActivity, OpenClozeActivity, WordFormationActivity } from "./ClozeActivities";
+import { DragDropGapfillActivity, DragDropReorderActivity, DragDropCategorizeActivity } from "./DragDropActivities";
 
 const TIPO_ICONS: Record<PracticeActivityType, React.ElementType> = {
   multiple_matching: Shuffle,
@@ -26,6 +35,12 @@ const TIPO_ICONS: Record<PracticeActivityType, React.ElementType> = {
   use_of_english: SpellCheck,
   reading: BookOpen,
   listening: Headphones,
+  multiple_choice_cloze: CheckSquare,
+  open_cloze: TextCursor,
+  word_formation: Wand2,
+  drag_drop_gapfill: GripHorizontal,
+  drag_drop_reorder: ArrowUpDown,
+  drag_drop_categorize: LayoutGrid,
 };
 
 type Progreso = { actividad_id: string; correctas: number | null; total: number | null };
@@ -113,6 +128,18 @@ export function LeccionActividades({ leccionId }: { leccionId: string }) {
       score = scoreMultipleChoice((active.contenido as ReadingContent).questions, answers as Record<string, number>);
     } else if (active.tipo === "listening") {
       score = scoreMultipleChoice((active.contenido as ListeningContent).questions, answers as Record<string, number>);
+    } else if (active.tipo === "multiple_choice_cloze") {
+      score = scoreMultipleChoiceCloze((active.contenido as MultipleChoiceClozeContent).gaps, answers as Record<string, number>);
+    } else if (active.tipo === "open_cloze") {
+      score = scoreOpenCloze((active.contenido as OpenClozeContent).gaps, answers as Record<string, string>);
+    } else if (active.tipo === "word_formation") {
+      score = scoreWordFormation((active.contenido as WordFormationContent).gaps, answers as Record<string, string>);
+    } else if (active.tipo === "drag_drop_gapfill") {
+      score = scoreDragDropGapfill((active.contenido as DragDropGapfillContent).gaps, answers as Record<string, string>);
+    } else if (active.tipo === "drag_drop_reorder") {
+      score = scoreReorder((active.contenido as ReorderContent).items, answers as unknown as string[]);
+    } else if (active.tipo === "drag_drop_categorize") {
+      score = scoreCategorize((active.contenido as CategorizeContent).items, answers as Record<string, string>);
     }
     setResult(score);
     setChecked(true);
@@ -178,6 +205,7 @@ export function LeccionActividades({ leccionId }: { leccionId: string }) {
               <div className="mt-4 space-y-4">
                 {active.tipo === "multiple_matching" && (
                   <MatchingPractice
+                    key={active.id}
                     content={active.contenido as MatchingContent}
                     answers={answers as Record<string, string>}
                     onChange={setAnswers}
@@ -186,6 +214,7 @@ export function LeccionActividades({ leccionId }: { leccionId: string }) {
                 )}
                 {active.tipo === "fill_blanks" && (
                   <FillBlanksPractice
+                    key={active.id}
                     content={active.contenido as FillBlanksContent}
                     answers={answers as Record<string, string>}
                     onChange={setAnswers}
@@ -194,6 +223,7 @@ export function LeccionActividades({ leccionId }: { leccionId: string }) {
                 )}
                 {active.tipo === "multiple_choice" && (
                   <MultipleChoicePractice
+                    key={active.id}
                     content={active.contenido as MultipleChoiceContent}
                     answers={answers as Record<string, number>}
                     onChange={setAnswers}
@@ -202,6 +232,7 @@ export function LeccionActividades({ leccionId }: { leccionId: string }) {
                 )}
                 {active.tipo === "use_of_english" && (
                   <UseOfEnglishPractice
+                    key={active.id}
                     content={active.contenido as UseOfEnglishContent}
                     answers={answers as Record<string, string>}
                     onChange={setAnswers}
@@ -210,6 +241,7 @@ export function LeccionActividades({ leccionId }: { leccionId: string }) {
                 )}
                 {active.tipo === "reading" && (
                   <ReadingPractice
+                    key={active.id}
                     content={active.contenido as ReadingContent}
                     answers={answers as Record<string, number>}
                     onChange={setAnswers}
@@ -218,10 +250,65 @@ export function LeccionActividades({ leccionId }: { leccionId: string }) {
                 )}
                 {active.tipo === "listening" && (
                   <ListeningPractice
+                    key={active.id}
                     content={active.contenido as ListeningContent}
                     answers={answers as Record<string, number>}
                     onChange={setAnswers}
                     checked={checked}
+                  />
+                )}
+                {active.tipo === "multiple_choice_cloze" && (
+                  <MultipleChoiceClozeActivity
+                    key={active.id}
+                    content={active.contenido as MultipleChoiceClozeContent}
+                    answers={answers as Record<string, number>}
+                    onChange={setAnswers}
+                    readonly={checked}
+                  />
+                )}
+                {active.tipo === "open_cloze" && (
+                  <OpenClozeActivity
+                    key={active.id}
+                    content={active.contenido as OpenClozeContent}
+                    answers={answers as Record<string, string>}
+                    onChange={setAnswers}
+                    readonly={checked}
+                  />
+                )}
+                {active.tipo === "word_formation" && (
+                  <WordFormationActivity
+                    key={active.id}
+                    content={active.contenido as WordFormationContent}
+                    answers={answers as Record<string, string>}
+                    onChange={setAnswers}
+                    readonly={checked}
+                  />
+                )}
+                {active.tipo === "drag_drop_gapfill" && (
+                  <DragDropGapfillActivity
+                    key={active.id}
+                    content={active.contenido as DragDropGapfillContent}
+                    answers={answers as Record<string, string>}
+                    onChange={setAnswers}
+                    readonly={checked}
+                  />
+                )}
+                {active.tipo === "drag_drop_reorder" && (
+                  <DragDropReorderActivity
+                    key={active.id}
+                    content={active.contenido as ReorderContent}
+                    answers={(answers as unknown as string[]) || []}
+                    onChange={(order) => setAnswers(order as unknown as Record<string, unknown>)}
+                    readonly={checked}
+                  />
+                )}
+                {active.tipo === "drag_drop_categorize" && (
+                  <DragDropCategorizeActivity
+                    key={active.id}
+                    content={active.contenido as CategorizeContent}
+                    answers={answers as Record<string, string>}
+                    onChange={setAnswers}
+                    readonly={checked}
                   />
                 )}
 

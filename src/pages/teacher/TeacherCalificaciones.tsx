@@ -15,11 +15,15 @@ import {
   ChevronLeft, Trophy, ClipboardCheck, User, Star,
   CheckCircle2, Clock, AlertCircle, Shuffle, AlignLeft, PenLine,
   FileText, ClipboardList, ListChecks, HelpCircle, SpellCheck, BookOpen, Headphones, Mic,
+  CheckSquare, TextCursor, Wand2, GripHorizontal, ArrowUpDown, LayoutGrid,
 } from "lucide-react";
+import { splitClozeText, matchesAny } from "@/components/activities/practiceActivity.types";
 
 type ActivityType =
   | "multiple_matching" | "fill_blanks" | "multiple_choice" | "writing" | "open_questions"
-  | "use_of_english" | "reading" | "listening" | "speaking";
+  | "use_of_english" | "reading" | "listening" | "speaking"
+  | "multiple_choice_cloze" | "open_cloze" | "word_formation"
+  | "drag_drop_gapfill" | "drag_drop_reorder" | "drag_drop_categorize";
 
 type Actividad = {
   id: string;
@@ -59,6 +63,12 @@ const TIPO_ICONS: Record<ActivityType, React.ElementType> = {
   reading: BookOpen,
   listening: Headphones,
   speaking: Mic,
+  multiple_choice_cloze: CheckSquare,
+  open_cloze: TextCursor,
+  word_formation: Wand2,
+  drag_drop_gapfill: GripHorizontal,
+  drag_drop_reorder: ArrowUpDown,
+  drag_drop_categorize: LayoutGrid,
 };
 
 const TIPO_LABELS: Record<ActivityType, string> = {
@@ -71,6 +81,12 @@ const TIPO_LABELS: Record<ActivityType, string> = {
   reading: "Reading",
   listening: "Listening",
   speaking: "Speaking",
+  multiple_choice_cloze: "Multiple-Choice Cloze",
+  open_cloze: "Open Cloze",
+  word_formation: "Word Formation",
+  drag_drop_gapfill: "Drag & Drop Gap Fill",
+  drag_drop_reorder: "Reorder",
+  drag_drop_categorize: "Categorize",
 };
 
 function normalizeAnswer(s: string) {
@@ -289,6 +305,151 @@ function renderRespuesta(actividad: Actividad, entrega: Entrega) {
         {respuesta.audio_path
           ? <SpeakingPlayback path={respuesta.audio_path} />
           : <p className="text-sm text-muted-foreground">(Sin grabación)</p>}
+      </div>
+    );
+  }
+  if (actividad.tipo === "multiple_choice_cloze") {
+    const content = actividad.contenido as { text?: string; gaps?: Array<{ id: string; options: string[]; correctIndex: number }> };
+    const answers = entrega.respuestas as { answers?: Record<string, number> };
+    const studentAnswers = answers.answers || {};
+    const gaps = content.gaps || [];
+    return (
+      <div className="space-y-2">
+        {content.text && (
+          <p className="text-sm leading-relaxed whitespace-pre-wrap bg-muted/30 rounded-md p-3">
+            {splitClozeText(content.text).map((seg, i) => seg.kind === "text" ? <span key={i}>{seg.value}</span> : <span key={i} className="font-semibold text-primary">({seg.index + 1})</span>)}
+          </p>
+        )}
+        {gaps.map((gap, i) => {
+          const selectedIndex = studentAnswers[gap.id];
+          const correct = selectedIndex === gap.correctIndex;
+          return (
+            <div key={gap.id} className={`flex items-center gap-2 p-2 rounded text-sm ${correct ? "bg-green-50" : "bg-red-50"}`}>
+              <span className="text-muted-foreground w-6 text-xs">({i + 1})</span>
+              <span className={`flex-1 ${correct ? "text-green-700" : "text-red-700"}`}>
+                {selectedIndex !== undefined ? gap.options[selectedIndex] : "(Sin respuesta)"}
+              </span>
+              {correct
+                ? <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                : <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />}
+              {!correct && <span className="text-xs text-muted-foreground">Correcta: {gap.options[gap.correctIndex]}</span>}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+  if (actividad.tipo === "open_cloze" || actividad.tipo === "word_formation") {
+    const content = actividad.contenido as {
+      text?: string;
+      gaps?: Array<{ id: string; rootWord?: string; answer: string; acceptableAnswers: string }>;
+    };
+    const answers = entrega.respuestas as { answers?: Record<string, string> };
+    const studentAnswers = answers.answers || {};
+    const gaps = content.gaps || [];
+    return (
+      <div className="space-y-2">
+        {content.text && (
+          <p className="text-sm leading-relaxed whitespace-pre-wrap bg-muted/30 rounded-md p-3">
+            {splitClozeText(content.text).map((seg, i) => seg.kind === "text" ? <span key={i}>{seg.value}</span> : <span key={i} className="font-semibold text-primary">({seg.index + 1})</span>)}
+          </p>
+        )}
+        {gaps.map((gap, i) => {
+          const studentAnswer = studentAnswers[gap.id] || "";
+          const correct = matchesAny(studentAnswer, gap.answer, gap.acceptableAnswers);
+          return (
+            <div key={gap.id} className={`flex items-center gap-2 p-2 rounded text-sm ${correct ? "bg-green-50" : "bg-red-50"}`}>
+              <span className="text-muted-foreground w-6 text-xs">({i + 1})</span>
+              {gap.rootWord && <span className="text-xs font-mono font-bold text-muted-foreground uppercase">({gap.rootWord})</span>}
+              <span className={`flex-1 ${correct ? "text-green-700" : "text-red-700"}`}>
+                {studentAnswer || "(Sin respuesta)"}
+              </span>
+              {correct
+                ? <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                : <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />}
+              {!correct && <span className="text-xs text-muted-foreground">Correcta: {gap.answer}</span>}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+  if (actividad.tipo === "drag_drop_gapfill") {
+    const content = actividad.contenido as { text?: string; gaps?: Array<{ id: string; answer: string }> };
+    const answers = entrega.respuestas as { answers?: Record<string, string> };
+    const studentAnswers = answers.answers || {};
+    const gaps = content.gaps || [];
+    return (
+      <div className="space-y-2">
+        {content.text && (
+          <p className="text-sm leading-relaxed whitespace-pre-wrap bg-muted/30 rounded-md p-3">
+            {splitClozeText(content.text).map((seg, i) => seg.kind === "text" ? <span key={i}>{seg.value}</span> : <span key={i} className="font-semibold text-primary">({seg.index + 1})</span>)}
+          </p>
+        )}
+        {gaps.map((gap, i) => {
+          const studentAnswer = studentAnswers[gap.id] || "";
+          const correct = normalizeAnswer(studentAnswer) === normalizeAnswer(gap.answer);
+          return (
+            <div key={gap.id} className={`flex items-center gap-2 p-2 rounded text-sm ${correct ? "bg-green-50" : "bg-red-50"}`}>
+              <span className="text-muted-foreground w-6 text-xs">({i + 1})</span>
+              <span className={`flex-1 ${correct ? "text-green-700" : "text-red-700"}`}>
+                {studentAnswer || "(Sin respuesta)"}
+              </span>
+              {correct
+                ? <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                : <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />}
+              {!correct && <span className="text-xs text-muted-foreground">Correcta: {gap.answer}</span>}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+  if (actividad.tipo === "drag_drop_reorder") {
+    const content = actividad.contenido as { items?: Array<{ id: string; text: string }> };
+    const respuesta = entrega.respuestas as { order?: string[] };
+    const items = content.items || [];
+    const order = respuesta.order || [];
+    return (
+      <div className="space-y-2">
+        {order.map((id, i) => {
+          const item = items.find((it) => it.id === id);
+          const correct = items[i]?.id === id;
+          return (
+            <div key={id} className={`p-2 rounded text-sm ${correct ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+              {i + 1}. {item?.text}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+  if (actividad.tipo === "drag_drop_categorize") {
+    const content = actividad.contenido as {
+      categories?: Array<{ id: string; label: string }>;
+      items?: Array<{ id: string; text: string; categoryId: string }>;
+    };
+    const answers = entrega.respuestas as { answers?: Record<string, string> };
+    const studentAnswers = answers.answers || {};
+    const categories = content.categories || [];
+    const items = content.items || [];
+    return (
+      <div className="space-y-3">
+        {categories.map((cat) => (
+          <div key={cat.id}>
+            <p className="text-xs font-semibold text-muted-foreground mb-1">{cat.label}</p>
+            <div className="flex flex-wrap gap-2">
+              {items.filter((it) => (studentAnswers[it.id] || "") === cat.id).map((it) => {
+                const correct = it.categoryId === cat.id;
+                return (
+                  <span key={it.id} className={`px-2 py-1 rounded-full text-xs ${correct ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                    {it.text}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
