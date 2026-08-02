@@ -104,7 +104,7 @@ Reglas: "correctIndex" es el índice (desde 0) de la opción correcta; 2 a 5 opc
   "instrucciones": "string",
   "contenido": { "items": [{ "id": "1", "sentence": "oración original", "keyword": "PALABRA CLAVE", "gapPrefix": "texto antes del espacio", "gapSuffix": "texto después del espacio", "answer": "respuesta (2-6 palabras, incluye la keyword)" }] }
 }
-Reglas: formato Key Word Transformation de Cambridge; "gapPrefix" + [ESPACIO] + "gapSuffix" debe formar una oración natural con "answer".`,
+Reglas: formato Key Word Transformation de Cambridge (Use of English Parte 4); la keyword NO cambia de forma; "gapPrefix" + " " + "answer" + " " + "gapSuffix" debe formar una oración natural; "answer" tiene 2-5 palabras incluyendo la keyword; varía el punto gramatical entre items (reported speech, condicionales, voz pasiva, comparativos, "wish", "enough/too", phrasal verbs); si "sentence" lleva discurso directo usa comillas simples ('like this') o escapa las comillas dobles con \\" para no romper el JSON; no repitas oraciones ni keywords.`,
   reading: `{
   "titulo": "string",
   "instrucciones": "string",
@@ -162,6 +162,8 @@ TEMA / NIVEL / CANTIDAD DE ITEMS (modifica esta línea con lo que necesites):
 [ESCRIBE AQUÍ EL TEMA, EL NIVEL Y LA CANTIDAD DE ITEMS QUE QUIERES]
 
 Devuélveme ÚNICAMENTE un JSON válido, sin explicaciones ni bloques de código, con exactamente esta estructura:
+
+IMPORTANTE sobre el formato: si algún texto incluye comillas dobles (por ejemplo, diálogo en estilo directo como "Hello", she said), debes escaparlas con \\" para que el JSON siga siendo válido. Nunca dejes una comilla doble " sin escapar dentro de un valor de texto. Si es posible, prefiere comillas simples ('like this') dentro del texto en inglés para evitar el problema por completo.
 
 ${PROMPT_SCHEMAS[tipo]}`;
 }

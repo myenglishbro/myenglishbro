@@ -263,10 +263,12 @@ Reglas:
 }
 
 Reglas:
-- Es el formato "Key Word Transformation" de Cambridge (B2 First / C1 Advanced): se da una oración, una palabra clave que NO debe cambiar de forma, y el estudiante completa una segunda oración con el mismo significado usando esa palabra.
-- "gapPrefix" + [ESPACIO] + "gapSuffix" debe formar una oración completa y natural al combinarse con "answer".
-- "answer" debe tener entre 2 y 6 palabras e incluir obligatoriamente la "keyword".
-- No repitas oraciones.`,
+- Es el formato "Key Word Transformation" (Use of English Parte 4) de Cambridge (B2 First / C1 Advanced): se da una oración original ("sentence"), una palabra clave ("keyword") que NO debe cambiar de forma (ni singular/plural, ni tiempo verbal, ni parte de la oración), y el estudiante completa una segunda oración con el mismo significado usando esa palabra.
+- La oración completa resulta de unir "gapPrefix" + " " + "answer" + " " + "gapSuffix" — estas tres partes deben encajar gramaticalmente y sonar 100% natural en inglés, sin espacios duplicados ni faltantes.
+- "answer" debe tener entre 2 y 5 palabras (contando la keyword) e incluir obligatoriamente la "keyword" tal cual, sin cambiar su forma. Escríbela en minúsculas salvo que gramaticalmente deba ir en mayúscula (ej. al inicio de la oración).
+- Varía el punto gramatical de cada ítem dentro del set (ej. reported speech, condicionales, voz pasiva, comparativos, verbos + preposición, "so/such", "wish", "enough/too", phrasal verbs) — no repitas el mismo patrón gramatical en items consecutivos.
+- Si "sentence" incluye una cita en estilo directo (discurso reportado), escribe esa cita con comillas simples ('like this') en vez de comillas dobles, o si usas comillas dobles, escápalas con \\" — nunca dejes una comilla doble sin escapar dentro del JSON.
+- No repitas oraciones ni keywords entre los ítems del mismo set.`,
   reading: `{
   "titulo": "string",
   "instrucciones": "string",
@@ -413,6 +415,8 @@ TEMA / NIVEL / CANTIDAD DE ITEMS (modifica esta línea con lo que necesites):
 [ESCRIBE AQUÍ EL TEMA, EL NIVEL Y LA CANTIDAD DE ITEMS QUE QUIERES]
 
 Devuélveme ÚNICAMENTE un JSON válido, sin explicaciones, sin comentarios y sin bloques de código (no uses comillas triples), con exactamente esta estructura:
+
+IMPORTANTE sobre el formato: si algún texto incluye comillas dobles (por ejemplo, diálogo en estilo directo como "Hello", she said), debes escaparlas con \\" para que el JSON siga siendo válido. Nunca dejes una comilla doble " sin escapar dentro de un valor de texto. Si es posible, prefiere comillas simples ('like this') dentro del texto en inglés para evitar el problema por completo.
 
 ${PROMPT_SCHEMAS[tipo]}`;
 }
