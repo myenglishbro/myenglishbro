@@ -52,6 +52,33 @@ export const CAMBRIDGE_B2_FIRST_BANK: BankEntry[] = [
     } as UseOfEnglishContent,
   },
 
+  {
+    id: "kwt-3",
+    tipo: "use_of_english",
+    titulo: "Key Word Transformation — Reported Speech Verb Patterns",
+    instrucciones: "Completa la segunda oración para que signifique lo mismo que la primera, usando la palabra clave dada. No cambies la forma de la palabra clave. Usa entre 2 y 5 palabras, incluyendo la palabra clave.",
+    puntaje_maximo: 15,
+    contenido: {
+      items: [
+        { id: "1", sentence: "\"You put that frog on my chair, didn't you, Charlie?\" said Sally.", keyword: "OF", gapPrefix: "Sally accused Charlie ", gapSuffix: " a frog on her chair.", answer: "of putting" },
+        { id: "2", sentence: "\"Stop misbehaving or you will be sent to the head teacher,\" the teacher said to Johnny.", keyword: "WARNED", gapPrefix: "The teacher ", gapSuffix: " or he would be sent to the head teacher.", answer: "warned Johnny to stop misbehaving" },
+        { id: "3", sentence: "\"Please try to stay awake during the lesson,\" the teacher told the students.", keyword: "URGED", gapPrefix: "The teacher ", gapSuffix: " asleep during the lesson.", answer: "urged the students not to fall" },
+        { id: "4", sentence: "Susan denied wasting her time at school when she was younger.", keyword: "NOT", gapPrefix: "Susan said ", gapSuffix: " her time at school when she was younger.", answer: "she had not wasted" },
+        { id: "5", sentence: "\"Have you tidied up in the science lab?\" the chemistry teacher asked the students.", keyword: "TIDIED", gapPrefix: "The chemistry teacher wanted to know ", gapSuffix: " in the science lab.", answer: "whether the students had tidied up" },
+        { id: "6", sentence: "\"I'm sorry, I've forgotten my homework,\" Nicholas said.", keyword: "APOLOGISED", gapPrefix: "Nicholas ", gapSuffix: " his homework.", answer: "apologised for forgetting" },
+        { id: "7", sentence: "\"You should speak to your manager about the problem,\" Jane told me.", keyword: "ADVISED", gapPrefix: "Jane ", gapSuffix: " to my manager about the problem.", answer: "advised me to speak" },
+        { id: "8", sentence: "\"I will help you prepare for the interview,\" Daniel told Lucy.", keyword: "OFFERED", gapPrefix: "Daniel ", gapSuffix: " for the interview.", answer: "offered to help Lucy prepare" },
+        { id: "9", sentence: "\"Yes, I took the money from the desk,\" Paul said.", keyword: "ADMITTED", gapPrefix: "Paul ", gapSuffix: " the money from the desk.", answer: "admitted taking" },
+        { id: "10", sentence: "\"I won't tell anyone your secret,\" Emily told me.", keyword: "PROMISED", gapPrefix: "Emily ", gapSuffix: " anyone my secret.", answer: "promised not to tell" },
+        { id: "11", sentence: "\"Why don't we take a taxi to the airport?\" George said.", keyword: "SUGGESTED", gapPrefix: "George ", gapSuffix: " a taxi to the airport.", answer: "suggested taking" },
+        { id: "12", sentence: "\"Please don't forget to send the application,\" my tutor said.", keyword: "REMINDED", gapPrefix: "My tutor ", gapSuffix: " the application.", answer: "reminded me to send" },
+        { id: "13", sentence: "\"Could you carry this bag for me?\" Anna asked Tom.", keyword: "TO", gapPrefix: "Anna asked Tom ", gapSuffix: " the bag for her.", answer: "to carry" },
+        { id: "14", sentence: "\"No, I won't clean the kitchen,\" Martin said.", keyword: "REFUSED", gapPrefix: "Martin ", gapSuffix: " the kitchen.", answer: "refused to clean" },
+        { id: "15", sentence: "\"You must let me pay for dinner,\" Helen told her friends.", keyword: "INSISTED", gapPrefix: "Helen ", gapSuffix: " for dinner.", answer: "insisted on paying" },
+      ],
+    } as UseOfEnglishContent,
+  },
+
   // --- Open Cloze (Use of English Part 2) ---
   {
     id: "oc-1",
