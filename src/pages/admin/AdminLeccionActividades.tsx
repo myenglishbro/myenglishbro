@@ -725,7 +725,7 @@ const AdminLeccionActividades = () => {
                     <SelectItem value="multiple_matching">Multiple Matching</SelectItem>
                     <SelectItem value="fill_blanks">Fill in the Blanks</SelectItem>
                     <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
-                    <SelectItem value="use_of_english">Use of English</SelectItem>
+                    <SelectItem value="use_of_english">Key Word Transformation</SelectItem>
                     <SelectItem value="reading">Reading</SelectItem>
                     <SelectItem value="listening">Listening</SelectItem>
                     <SelectItem value="multiple_choice_cloze">Multiple-Choice Cloze</SelectItem>

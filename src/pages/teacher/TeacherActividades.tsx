@@ -74,7 +74,7 @@ const TIPO_LABELS: Record<ActivityType, string> = {
   multiple_choice: "Multiple Choice",
   writing: "Writing",
   open_questions: "Preguntas Abiertas",
-  use_of_english: "Use of English",
+  use_of_english: "Key Word Transformation",
   reading: "Reading",
   listening: "Listening",
   speaking: "Speaking",
@@ -1219,7 +1219,7 @@ const TeacherActividades = () => {
                     <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
                     <SelectItem value="writing">Writing</SelectItem>
                     <SelectItem value="open_questions">Preguntas Abiertas</SelectItem>
-                    <SelectItem value="use_of_english">Use of English</SelectItem>
+                    <SelectItem value="use_of_english">Key Word Transformation</SelectItem>
                     <SelectItem value="reading">Reading</SelectItem>
                     <SelectItem value="listening">Listening</SelectItem>
                     <SelectItem value="speaking">Speaking</SelectItem>

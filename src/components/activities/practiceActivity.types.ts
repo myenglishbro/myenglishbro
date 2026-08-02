@@ -172,7 +172,7 @@ export const TIPO_LABELS: Record<PracticeActivityType, string> = {
   multiple_matching: "Multiple Matching",
   fill_blanks: "Fill in the Blanks",
   multiple_choice: "Multiple Choice",
-  use_of_english: "Use of English",
+  use_of_english: "Key Word Transformation",
   reading: "Reading",
   listening: "Listening",
   multiple_choice_cloze: "Multiple-Choice Cloze",

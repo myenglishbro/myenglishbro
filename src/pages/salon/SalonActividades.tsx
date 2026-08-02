@@ -103,7 +103,7 @@ const TIPO_LABELS: Record<ActivityType, string> = {
   multiple_choice: "Multiple Choice",
   writing: "Writing",
   open_questions: "Preguntas Abiertas",
-  use_of_english: "Use of English",
+  use_of_english: "Key Word Transformation",
   reading: "Reading",
   listening: "Listening",
   speaking: "Speaking",
