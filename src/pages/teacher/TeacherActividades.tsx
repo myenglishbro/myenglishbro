@@ -16,7 +16,7 @@ import {
   Shuffle, PenLine, AlignLeft, X, GripVertical,
   FileText, ClipboardCheck, ListChecks, HelpCircle, Eye,
   Sparkles, Copy, ClipboardPaste, SpellCheck, BookOpen, Headphones, Mic,
-  CheckSquare, TextCursor, Wand2, GripHorizontal, ArrowUpDown, LayoutGrid,
+  CheckSquare, TextCursor, Wand2, GripHorizontal, ArrowUpDown, LayoutGrid, Library,
 } from "lucide-react";
 import {
   MultipleChoiceClozeContent, OpenClozeContent, WordFormationContent,
@@ -28,6 +28,7 @@ import {
   MultipleChoiceClozeBuilder, OpenClozeBuilder, WordFormationBuilder,
   DragDropGapfillBuilder, ReorderBuilder, CategorizeBuilder,
 } from "@/components/activities/ActivityBuilders";
+import { getBankEntriesForTipo, type BankEntry, type BankTipo } from "@/components/activities/cambridgeB2FirstBank";
 
 type ActivityType =
   | "multiple_matching" | "fill_blanks" | "multiple_choice" | "writing" | "open_questions"
@@ -589,6 +590,7 @@ const TeacherActividades = () => {
   const [promptText, setPromptText] = useState("");
   const [jsonInput, setJsonInput] = useState("");
   const [previewActividad, setPreviewActividad] = useState<Actividad | null>(null);
+  const [isBankDialogOpen, setIsBankDialogOpen] = useState(false);
 
   const { data: salon } = useQuery({
     queryKey: ["teacher-salon-name", salonId],
@@ -743,6 +745,18 @@ const TeacherActividades = () => {
     }));
     setContent(normalizeContent(form.tipo, parsed.contenido ?? parsed));
     toast.success("JSON cargado. Revisa el contenido antes de guardar.");
+  }
+
+  function applyBankEntry(entry: BankEntry) {
+    setForm((f) => ({
+      ...f,
+      titulo: entry.titulo,
+      instrucciones: entry.instrucciones,
+      puntaje_maximo: entry.puntaje_maximo,
+    }));
+    setContent(normalizeContent(form.tipo, entry.contenido));
+    setIsBankDialogOpen(false);
+    toast.success("Ejercicio cargado desde el banco. Puedes editarlo antes de guardar.");
   }
 
   // --- Matching helpers ---
@@ -1239,6 +1253,24 @@ const TeacherActividades = () => {
               </div>
             </div>
 
+            {/* Cambridge B2 First exercise bank */}
+            {(["use_of_english", "open_cloze", "reading"] as ActivityType[]).includes(form.tipo) && (
+              <div className="border rounded-lg p-3 bg-secondary/30 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Library className="h-4 w-4 text-primary" />
+                    Banco de ejercicios B2 First (Cambridge)
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setIsBankDialogOpen(true)}>
+                    Ver ejercicios
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Ejercicios ya redactados en estilo Cambridge B2 First para "{TIPO_LABELS[form.tipo]}", listos para cargar y editar.
+                </p>
+              </div>
+            )}
+
             {/* AI-assisted content generation */}
             <div className="border rounded-lg p-3 bg-primary/5 space-y-2">
               <div className="flex items-center justify-between">
@@ -1412,6 +1444,34 @@ const TeacherActividades = () => {
                 <Copy className="h-4 w-4 mr-2" /> Copiar prompt
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cambridge B2 First Bank Dialog */}
+      <Dialog open={isBankDialogOpen} onOpenChange={setIsBankDialogOpen}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Library className="h-5 w-5 text-primary" />
+              Banco B2 First — {TIPO_LABELS[form.tipo]}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {getBankEntriesForTipo(form.tipo as BankTipo).map((entry) => (
+              <Card key={entry.id}>
+                <CardContent className="p-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{entry.titulo}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Puntaje sugerido: {entry.puntaje_maximo} pts</p>
+                  </div>
+                  <Button size="sm" onClick={() => applyBankEntry(entry)}>Usar este</Button>
+                </CardContent>
+              </Card>
+            ))}
+            {getBankEntriesForTipo(form.tipo as BankTipo).length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-6">No hay ejercicios en el banco para este tipo todavía.</p>
+            )}
           </div>
         </DialogContent>
       </Dialog>
