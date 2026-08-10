@@ -1,73 +1,117 @@
-# Welcome to your Lovable project
+# Hi, I'm Carlos 👋
 
-## Project info
+### Language Teacher | Aspiring Programmer | Exploring Data & AI
 
-**URL**: https://lovable.dev/projects/3e934cbf-a28e-4a09-bd9c-f066074e9145
+I'm an **English language teacher** with a growing interest in **programming, data, and artificial intelligence**.
 
-## How can I edit this code?
+My professional background is mainly in language education, but over the last few years I've become increasingly interested in how technology can be used to build better tools, automate processes, analyze information, and improve the way we teach and learn.
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## 👨‍🏫 Teaching & Education
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3e934cbf-a28e-4a09-bd9c-f066074e9145) and start prompting.
+English teaching is still a major part of what I do.
 
-Changes made via Lovable will be committed automatically to this repo.
+* I teach **English as a Foreign Language (EFL)**.
+* I specialize in **Cambridge English exam preparation**, particularly B1 Preliminary, B2 First and C1 Advanced.
+* I'm currently preparing for **Cambridge DELTA Module 1** to deepen my knowledge of language systems, methodology, assessment and second-language learning.
+* I'm particularly interested in **ELT methodology, language assessment and educational technology**.
 
-**Use your preferred IDE**
+I enjoy not only teaching English, but also understanding **how languages are learned and how teaching can be improved**.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 Acelingua
 
-Follow these steps:
+I lead **Acelingua**, an English language academy where I work alongside a team of around **10 English teachers**.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+My role goes beyond teaching. I work on areas such as:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+* Teacher coordination
+* Cambridge exam preparation
+* Course and curriculum development
+* Language assessment
+* Academic resources
+* Educational technology
+* Digital learning platforms
+* Improving our students' learning experience
 
-# Step 3: Install the necessary dependencies.
-npm i
+Running Acelingua is also one of the reasons I became interested in programming: I kept finding problems that I wanted to solve with technology.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+---
 
-**Edit a file directly in GitHub**
+## 💻 Learning to Build
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+I'm an **aspiring programmer**.
 
-**Use GitHub Codespaces**
+Rather than only using existing software, I'm learning how to build my own tools and understand what happens behind them.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+I'm currently working with and learning technologies such as:
 
-## What technologies are used for this project?
+`JavaScript` · `TypeScript` · `React` · `Vite` · `Tailwind CSS` · `Supabase` · `PostgreSQL` · `Git` · `GitHub`
 
-This project is built with:
+Most of my projects come from real problems I encounter in education and in running Acelingua.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## 📊 Data & Artificial Intelligence
 
-Simply open [Lovable](https://lovable.dev/projects/3e934cbf-a28e-4a09-bd9c-f066074e9145) and click on Share -> Publish.
+More recently, I've started exploring the world of **data and AI**.
 
-## Can I connect a custom domain to my Lovable project?
+I'm particularly curious about:
 
-Yes, you can!
+* Data analysis
+* Artificial intelligence
+* AI-assisted development
+* Automation
+* Educational data
+* AI in language learning
+* Intelligent assessment systems
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+I'm still learning — and that's exactly what this GitHub profile represents.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+---
+
+## 🔬 Where My Interests Meet
+
+The areas I'm most interested in sit somewhere between:
+
+**Language Teaching + Programming + Data + Artificial Intelligence**
+
+I'm particularly interested in discovering how these fields can work together to create better educational experiences.
+
+---
+
+## 🧪 This GitHub
+
+You'll find a mixture of:
+
+* Learning projects
+* Programming experiments
+* Educational tools
+* EdTech projects
+* Web applications
+* AI experiments
+* Things I build simply because I want to understand how they work
+
+Some projects will be polished.
+
+Others will probably break.
+
+That's part of the process.
+
+---
+
+## 🌱 Currently
+
+**Teaching:** English & Cambridge Exam Preparation
+**Studying:** Cambridge DELTA
+**Learning:** Programming, Data & AI
+**Leading:** Acelingua
+**Exploring:** EdTech & AI-assisted language learning
+
+---
+
+> Teaching languages taught me how people learn.
+> Programming is teaching me how things are built.
+> Data and AI are making me curious about what comes next.
